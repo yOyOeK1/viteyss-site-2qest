@@ -1,22 +1,23 @@
 <template>
 
-<div v-if="fSelect >= 0 && quest.files.length>0">
+<div v-if="fSelect >= 0 && qest.files.length>0">
+
 
 
 <pre>
-Quest: <input type="input" v-model="quest.name">
-files: ({{ quest.files.length }}) 
+Qest: <input type="input" v-model="qest.name">
+files: ({{ qest.files.length }}) 
 </pre>
 
 
 Selection ({{ fSelect }}):
 <div
-    v-for="fItem,fNo in quest.files">
+    v-for="fItem,fNo in qest.files">
 
     
      <FFile      
         v-if="1"   
-        :quest="quest"
+        :qest="qest"
         :fNo="fNo"
         :fSelect="fSelect"
         @file-select-update="console.log('67890');onEmit_fileSelectUpdate( $event )"
@@ -27,14 +28,15 @@ Selection ({{ fSelect }}):
         style="background-color: black; color:white;">
         <VideoPlayer
             :mySrc="`/@fs`+fItem"
-            :currentTime="quest.opts[ fNo ]['clipFrom']!=0?quest.opts[ fNo ]['clipFrom']:quest.opts[ fNo ]['currentTime']"
+            :currentTime="qest.opts[ fNo ]['clipFrom']!=0?qest.opts[ fNo ]['clipFrom']:qest.opts[ fNo ]['currentTime']"
+            @two-qest-video-update="onEmit_videoUpdate"
             />
 
         
 
         <!--
             
-        <input type="checkbox" v-model="quest.opts[ fNo ]['inPoint']" 
+        <input type="checkbox" v-model="qest.opts[ fNo ]['inPoint']" 
             id="nextOptInPoi" style="display:inline;"/>
         <label for="nextOptInPoi" style="display:inline;">in point</label>
         -->
@@ -42,28 +44,34 @@ Selection ({{ fSelect }}):
 
         
         <button @click="onStopForNotes( fNo,'from' )">from</button>
-        <button @mousedown="onStopForNotes( fNo, '--d' )" @mouseup="onStopForNotes( fNo, '--u' )"
+        <button @mousedown.prevent="onStopForNotes( fNo, '--d' )" @mouseup.prevent="onStopForNotes( fNo, '--u' )"
+            @touchdown.prevent="onStopForNotes( fNo, '--d' )" @touchup.prevent="onStopForNotes( fNo, '--u' )"
             ><</button>
-        <button @click="onStopForNotes( fNo, 'stop' )">STOP</button>
-        <button @click="onStopForNotes( fNo, 'play' )">PLAY</button>
-        <button @mousedown="onStopForNotes( fNo, '++d' )" @mouseup="onStopForNotes( fNo, '++u' )"
+        <button 
+            v-if="isPlaing" 
+            @click="onStopForNotes( fNo, 'stop' )">STOP</button>
+        <button
+            v-else 
+            @click="onStopForNotes( fNo, 'play' )">PLAY</button>
+        <button @mousedown.prevent="onStopForNotes( fNo, '++d' )" @mouseup.prevent="onStopForNotes( fNo, '++u' )"
+            @touchdown.prevent="onStopForNotes( fNo, '++d' )" @touchup.prevent="onStopForNotes( fNo, '++u' )"
             >></button>
         <button @click="onStopForNotes( fNo,'to' )">to</button>
 
-        {{ quest.opts[ fNo ]['currentTime']==-1?'0':msToDurationString(quest.opts[ fNo ]['currentTime'])}} / 
-        {{ quest.opts[ fNo ]['duration']==-1?'0':msToDurationString(quest.opts[ fNo ]['duration'])}}
+        {{ qest.opts[ fNo ]['currentTime']==-1?'0':msToDurationString(qest.opts[ fNo ]['currentTime'])}} / 
+        {{ qest.opts[ fNo ]['duration']==-1?'0':msToDurationString(qest.opts[ fNo ]['duration'])}}
 
-        <div v-if="quest.opts[ fNo ]['clipTo']!=-1">
+        <div v-if="qest.opts[ fNo ]['clipTo']!=-1">
             Clip: 
-            <a @click="onSeekTo(fNo,'from')">[ {{ msToDurationString( quest.opts[ fNo ]['clipFrom'] ) }} ]</a>
+            <a @click="onSeekTo(fNo,'from')">[ {{ msToDurationString( qest.opts[ fNo ]['clipFrom'] ) }} ]</a>
             to 
-            <a @click="onSeekTo(fNo,'to')">[ {{ msToDurationString( quest.opts[ fNo ]['clipTo'] ) }} ]</a>
+            <a @click="onSeekTo(fNo,'to')">[ {{ msToDurationString( qest.opts[ fNo ]['clipTo'] ) }} ]</a>
             | <button @click="onStopForNotes( fNo,'clear' )">[x]</button>
         </div>
         
 
         <!--
-        <input type="checkbox" v-model="quest.opts[ fNo ]['outPoint']" 
+        <input type="checkbox" v-model="qest.opts[ fNo ]['outPoint']" 
             id="nextOptOutPou" style="display:inline;"/>
         <label for="nextOptOutPou" style="display:inline;">out point</label>
         -->
@@ -71,15 +79,15 @@ Selection ({{ fSelect }}):
         <hr></hr>
 
         
-        <input type="checkbox" v-model="quest.opts[ fNo ]['stabilize']" 
+        <input type="checkbox" v-model="qest.opts[ fNo ]['stabilize']" 
             id="nextOptStabilize" style="display:inline;"/>
         <label for="nextOptStabilize" style="display:inline;">stabilize</label>
         |
-        <input type="checkbox" v-model="quest.opts[ fNo ]['rotMin']" 
+        <input type="checkbox" v-model="qest.opts[ fNo ]['rotMin']" 
             id="nextOptRotMin" style="display:inline;"/>
         <label for="nextOptRotMin" style="display:inline;">rot -90</label>
         |
-        <input type="checkbox" v-model="quest.opts[ fNo ]['rotPlu']" 
+        <input type="checkbox" v-model="qest.opts[ fNo ]['rotPlu']" 
             id="nextOptRotPlu" style="display:inline;"/>
         <label for="nextOptRotPlu" style="display:inline;">rot +90</label>
        
@@ -118,6 +126,7 @@ Selection ({{ fSelect }}):
 
 <script>
 
+import { vyArgsChk } from '../libs/vyArgs';
 import File from './file.vue';
 import { msToDurationString } from './libs';
 import VideoPlayer from './videoPlayer.vue';
@@ -127,91 +136,93 @@ import { toRaw } from 'vue';
 
 export default{
 
+props: [ 'qestAs' ],
+
 components:{
     "FFile": File,
     "VideoPlayer": VideoPlayer,
 },
 mounted(){
-    if( this.quest.files.length > 0 )
+    if( this.qest.files.length > 0 )
         this.fSelect = 0;
 
     
 },
 data(){
-
-    let files = [];
-    let rates = [];
-    let fInfos = [];
-    let opts = [];
-    
-    if( 'vyArgs' in process.env.vy_config ){
-        let args = JSON.parse(process.env.vy_config.vyArgs);
-        if( args.name =='2quest' ){
-            let j = JSON.parse( JSON.stringify( toRaw( args.payload.files ) ) );
-            let myI = 0;
-            for( let f of j ){
-                files.push( f );
-                rates.push('');
-                fInfos.push( args.payload.fInfos[ myI ] );
-                opts.push( this.getOptsDef() );
-                myI++;
-            }
-        }
-    }
-         
-
+    //let qest = vyArgsChk('qName - abc 32');   
+    console.log('qestAs: ',this.qestAs);
     return {
-        quest: {
+        qest: this.qestAs,/*
+        qest: {
             name: 'qName - abc123',
             files: files,
             rates: rates,
             fInfos: fInfos,
             opts: opts,
-        },
+        },*/
         fSelect: -1,
         goToNext: true,
 
         longPress: -1,
         longPressTime: 1.00,
+
+        isPlaing: false,
+        vpSync: -1,
         
     };
 
 },
 methods:{
 
-    getOptsDef( currentTime = -1, clipFrom = 0, clipTo = -1){
-        return { 
-            stabilize: false,
-            rotMin: false, 
-            rotPlu: false,
-            currentTime: currentTime,
-            duration: -1,
-            clipFrom: clipFrom,
-            clipTo: clipTo,
-            inPoint: false,
-            outPoint: false,
-            status: -1,
-            entryDate: Date.now()
-        };
+    onGetQest(){
+        return this.qest;
     },
-
     onMakeCopyClip( fNo ){
         console.log('clon ....',fNo);
-        this.quest.files.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.quest.files[ fNo ]))) );
-        this.quest.rates.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.quest.rates[ fNo ] ))) );
-        this.quest.fInfos.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.quest.fInfos[ fNo ]))) );
-        this.quest.opts.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.quest.opts[ fNo ]))) );
-        if( this.quest.files.length >= this.fSelect-1 && this.goToNext )
+        this.qest.files.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.files[ fNo ]))) );
+        this.qest.rates.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.rates[ fNo ] ))) );
+        this.qest.fInfos.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.fInfos[ fNo ]))) );
+        this.qest.opts.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.opts[ fNo ]))) );
+        if( this.qest.files.length >= this.fSelect-1 && this.goToNext )
             this.fSelect++;
     },
 
     onEmit_fileSelectUpdate( event ){
         this.fSelect = event;
+
+    },
+
+    onEmit_videoUpdate( msg  ){
+        console.log('video update root',msg);
+        let vp = document.getElementById('myVidPla');
+        if( !vp ) return -1;
+
+        if( msg.action == 'seek' )
+            this.qest.opts[ this.fSelect ]['currentTime'] = msg.payload;
+        
+        else if( msg.action == 'play' ) this.isPlaing = true;
+        else if( msg.action == 'pause' ){
+            this.isPlaing = false;
+            if( this.vpSync != -1 ) clearInterval( this.vpSync );
+        }else if( msg.action == 'playing' ) {
+            if( this.vpSync != -1 ) clearInterval( this.vpSync );
+            this.vpSync = setInterval(()=>{
+                this.qest.opts[ this.fSelect ]['currentTime'] = vp.currentTime;
+            },100);
+
+        }else if( msg.action == 'loadeddata' && this.qest.opts[  this.fSelect ]['duration'] == -1 ){
+            
+            this.qest.opts[ this.fSelect ]['duration'] = msg.target.duration;
+            this.qest.opts[ this.fSelect ]['currentTime'] = msg.target.currentTime;
+            
+        }
+
+        
     },
 
     onIsRate(fItem, rate){
-        this.quest.rates[ fItem ]= rate;
-        if( this.quest.files.length >= this.fSelect-1 && this.goToNext )
+        this.qest.rates[ fItem ]= rate;
+        if( this.qest.files.length >= this.fSelect-1 && this.goToNext )
             this.fSelect++;
 
     },
@@ -220,18 +231,18 @@ methods:{
         let vp = document.getElementById('myVidPla');
 
         if( isWhat == 'from' )
-            vp.currentTime = this.quest.opts[fNo]['clipFrom'];
+            vp.currentTime = this.qest.opts[ this.fSelect ]['clipFrom'];
         else
-            vp.currentTime = this.quest.opts[fNo]['clipTo'];
+            vp.currentTime = this.qest.opts[ this.fSelect ]['clipTo'];
 
     },
 
     onStopForNotes( fNo, action = '' ){
 
         if( action == 'clear' ){
-            this.quest.opts[ fNo ]['currentTime'] = -1;
-            this.quest.opts[ fNo ]['clipFrom'] = 0;
-            this.quest.opts[ fNo ]['clipTo'] = -1;
+            this.qest.opts[ this.fSelect ]['currentTime'] = -1;
+            this.qest.opts[ this.fSelect ]['clipFrom'] = 0;
+            this.qest.opts[ this.fSelect ]['clipTo'] = -1;
             return 1;
         }
         let vp = document.getElementById('myVidPla');        
@@ -251,7 +262,7 @@ methods:{
                 vp.currentTime += (multi / 30.00)* this.longPressTime;
                 this.longPressTime+=5.0;
                 if( this.longPressTime > 200.00 ) this.longPressTime = 200.00;
-                this.quest.opts[ fNo ]['currentTime'] = vp.currentTime;
+                this.qest.opts[ this.fSelect ]['currentTime'] = vp.currentTime;
         
             },300 );
 
@@ -260,12 +271,12 @@ methods:{
 
         
         }else if( action == 'from' ){
-            this.quest.opts[ fNo ]['clipFrom'] = vp.currentTime;
-            if( this.quest.opts[ fNo ]['clipTo'] == -1 )
-                this.quest.opts[ fNo ]['clipTo'] = vp.duration;
+            this.qest.opts[ this.fSelect ]['clipFrom'] = vp.currentTime;
+            if( this.qest.opts[ this.fSelect ]['clipTo'] == -1 )
+                this.qest.opts[ this.fSelect ]['clipTo'] = vp.duration;
             
         }else if( action == 'to' ){
-            this.quest.opts[ fNo ]['clipTo'] = vp.currentTime;
+            this.qest.opts[ this.fSelect ]['clipTo'] = vp.currentTime;
             
 
         }else if( action == 'play' ){
@@ -276,8 +287,8 @@ methods:{
         }
 
 
-        this.quest.opts[ fNo ]['currentTime'] = vp.currentTime;
-        this.quest.opts[ fNo ]['duration'] = vp.duration;
+        this.qest.opts[ this.fSelect ]['currentTime'] = vp.currentTime;
+        this.qest.opts[ this.fSelect ]['duration'] = vp.duration;
 
 
 

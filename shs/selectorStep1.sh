@@ -1,4 +1,8 @@
 #!/bin/bash
+
+
+#~/.local/share/nautilus/scripts
+
 arg=$*
 
 echo "-- selector --"

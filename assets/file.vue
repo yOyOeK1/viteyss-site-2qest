@@ -3,18 +3,18 @@
 
 
 <div
-    v-if="fSelect!=-1 && 'stabilize' in quest.opts[ fNo ]"
+    v-if="fSelect!=-1 && 'stabilize' in qest.opts[ fNo ]"
     :style=" fNo==fSelect?`background-color:#cdcdcd;`:'' +
         `border-bottom:solid gray 1px;`"
     @click="$emit('file-select-update',fNo);"
-    :title="quest.files[ fNo ]"
+    :title="qest.files[ fNo ]"
     >
     <b>
-        {{ quest.rates[ fNo ]!=''?quest.rates[ fNo ]+' | ':'' }}
+        {{ qest.rates[ fNo ]!=''?qest.rates[ fNo ]+' | ':'' }}
     </b><small>
-        {{ quest.opts[ fNo ].stabilize?'S':' ' }}
-        {{ quest.opts[ fNo ].rotPlu?'R':' ' }}
-        {{ quest.opts[ fNo ].rotMin?'L':' ' }}
+        {{ qest.opts[ fNo ].stabilize?'S':' ' }}
+        {{ qest.opts[ fNo ].rotPlu?'R':' ' }}
+        {{ qest.opts[ fNo ].rotMin?'L':' ' }}
         {{ getClipNiceStr() }}
     </small> 
     <b>{{ getName() }}</b> 
@@ -42,7 +42,8 @@
 
 <script>
 
-import VyButtonContext from '../../../../Apps/viteyss-site-settings1/UiAssets/vyButtonContext.vue';
+
+import VyButtonContext from '@viteyss-site-settings1/UiAssets/vyButtonContext.vue';
 import { msToDurationString } from './libs';
 
 
@@ -52,7 +53,7 @@ export default{
     },
     emits:[ 'file-select-update' ],
     props: { 
-        'quest':{ type: Object, default: {}} ,
+        'qest':{ type: Object, default: {}} ,
         'fNo':{ type: Number, default: -1}, 
         'fSelect':-1, 
     },
@@ -63,25 +64,25 @@ export default{
     },
     methods:{
         getName(){ 
-            let file = `${this.quest.files[ this.fNo ]}`;
+            let file = `${this.qest.files[ this.fNo ]}`;
             return file == '' ? '' : file.substring( file.lastIndexOf('/')+1 ); 
         },
         getDirname(){ 
-            let file = `${this.quest.files[ this.fNo ]}`;
+            let file = `${this.qest.files[ this.fNo ]}`;
             return file == '' ? '' : file.substring( 0, file.lastIndexOf('/') ); 
         },
         dofInfo(){ 
             
             let tr = []; 
-            for(let k of Object.keys( this.quest.fInfos[ this.fNo ]  )){
-                tr.push( `<small>${k}: </small>${this.quest.fInfos[ k ]}` );
+            for(let k of Object.keys( this.qest.fInfos[ this.fNo ]  )){
+                tr.push( `<small>${k}: </small>${this.qest.fInfos[ k ]}` );
             }
             console.log('fInfo: ',tr.join('<br>'));
             return tr.join('<br>');
         },
 
         getClipNiceStr(){
-            let opt = this.quest.opts[ this.fNo ];
+            let opt = this.qest.opts[ this.fNo ];
             return opt.clipFrom !=0 || opt.clipTo != -1 ? 
                 '['+msToDurationString( opt.clipFrom )+" - "+msToDurationString( opt.clipTo )+"] ":
                 '';

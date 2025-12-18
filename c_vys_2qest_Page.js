@@ -1,14 +1,14 @@
 
 import { createApp } from 'vue';
 import FilesList from "./assets/filesList.vue";
-
+import twoApp from './assets/twoApp.vue';
 
 
 class s_vys2qestPage{
 
   constructor(){
 
-    this.twoApp = createApp( FilesList );
+    this.twoApp = createApp( twoApp );
   }
   
   get getName(){
@@ -22,8 +22,9 @@ class s_vys2qestPage{
   
   getHtml = () => {
 
-    return `<img src="${this.homeUrl}/assets/ico_viteyss_32.png"><b>${this.getName}</b><br>
-    <!--This is a npm package<br>
+    return `<!--
+    <img src="${this.homeUrl}/assets/ico_viteyss_32.png"><b>${this.getName}</b><br>
+    This is a npm package<br>
     viteyss-site-2qest<br>
     <pre>
     In Menu: ${this.getName}
@@ -33,14 +34,15 @@ class s_vys2qestPage{
     More ditails in \`./site.json\`
     </pre>
     <hr>
-    --><div id="twoQuestApp" >twoQuestApp holder</div>
+    -->
+    <div id="twoQestApp" >twoQestApp holder</div>
     `;
 
   }
 
   getHtmlAfterLoad = () =>{
     cl(`${this.getName} - getHtmlAfterLoad()`);
-    this.twoApp.mount( '#twoQuestApp' );
+    this.twoApp.mount( '#twoQestApp' );
   }
 
   get svgDyno(){

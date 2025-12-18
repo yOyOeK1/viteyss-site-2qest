@@ -1,12 +1,12 @@
 <template>
 
     <div v-if="mySrc!=''">    
-        <video autoplay width="100%" height="220"
-            controls="1"
+        <video 
+            :autoplay="isAutoplay" 
+            width="100%" height="220"
+            controls="0"
             id="myVidPla"
             style="background-color: black;padding:10px;"
-            :onloadeddata="currentTime!=-1?`this.currentTime=`+currentTime+`;this.pause();`:''"
-            
             >
             <source :src="getNiceSrc" type="video/mp4">
             
@@ -18,9 +18,15 @@
 <script>
 
 export default{
+emits:[ 'two-qest-video-update' ],
 props: {
     mySrc:{ type: String, default: '' },
     currentTime:{ type:Number, default:-1}
+},
+data(){
+    return {
+        isAutoplay:false
+    };
 },
 computed:{
      getNiceSrc( ){
@@ -44,6 +50,50 @@ computed:{
 mounted(){
        // vp.pause();
         //this.currentTime = vp.currentTime;
+
+    let vh = document.getElementById('myVidPla');
+    vh.addEventListener('seeked',(e)=>{
+        if(0)console.log('videoPlayer vh:',vh,
+            '\ne:',e
+        );
+        mkTrashHold( '2qest_seek', ()=>{
+            this.$emit( 'two-qest-video-update', {
+                action: 'seek',
+                payload: e.target.currentTime    
+            });
+
+        }, 10 );
+
+    });
+
+    //:onloadeddata="currentTime!=-1?`this.currentTime=`+currentTime+`;this.pause();`:''"
+
+    vh.addEventListener('loadeddata',(e)=>{
+        this.$emit( 'two-qest-video-update', {
+            action: 'loadeddata',
+            target: e.target 
+        });
+    });
+
+    vh.addEventListener('play',(e)=>{
+        this.$emit( 'two-qest-video-update', {
+            action: 'play' 
+        });
+    });
+
+     vh.addEventListener('pause',(e)=>{
+        this.$emit( 'two-qest-video-update', {
+            action: 'pause' 
+        });
+    });
+     vh.addEventListener('playing',(e)=>{
+        this.$emit( 'two-qest-video-update', {
+            action: 'playing', payload: e.target.currentTime
+        });
+    });
+
+
+
 },
 methodes:{
     onLoadedVideo(e=''){
