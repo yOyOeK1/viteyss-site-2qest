@@ -1,0 +1,16 @@
+{
+    "oName": "s_vys2qestPage",
+    "o": null,
+    "dir": "viteyss-site-2qest",
+    "asModule": true,
+    "asVite": true,
+    "asPlugin": true,
+    "jssrc":["c_vys_2qest_Page.js"],
+    "enable": true,
+    "author": "Bartłomiej Ceglik <yoyoek@wp.pl>",
+    "ver": "0.0.1",
+    "desc": "To asist in process of collecting multimedia to quest a.k.a. video.",
+    "otdm":{
+        "playground": false
+    }
+}
