@@ -1,17 +1,22 @@
 <template>
+
+
+
 <div
+    v-if="fSelect!=-1 && 'stabilize' in quest.opts[ fNo ]"
     :style=" fNo==fSelect?`background-color:#cdcdcd;`:'' +
         `border-bottom:solid gray 1px;`"
     @click="$emit('file-select-update',fNo);"
-    :title="item"
+    :title="quest.files[ fNo ]"
     >
     <b>
-        {{ rate!=''?rate+' | ':'' }}
+        {{ quest.rates[ fNo ]!=''?quest.rates[ fNo ]+' | ':'' }}
     </b><small>
-        {{ opts.inPoint?'in@':' ' }}
-        {{ opts.currentTime!=-1?opts.currentTime+" | ":'' }}
-        {{ opts.inPoint?'@out':' ' }}
-    </small> | 
+        {{ quest.opts[ fNo ].stabilize?'S':' ' }}
+        {{ quest.opts[ fNo ].rotPlu?'R':' ' }}
+        {{ quest.opts[ fNo ].rotMin?'L':' ' }}
+        {{ getClipNiceStr() }}
+    </small> 
     <b>{{ getName() }}</b> 
     
     
@@ -23,35 +28,69 @@
     <VYButtonContext
         title="File info"
         icon="<i class='fa-solid fa-file-import'></i>"
+        :name="'file'+getName()"
         v-model:is-showing="showFileInfo"
+        style="color:white;"
         >
         <small v-html="dofInfo()" />
     </VYButtonContext>
 </div>
+
+
+
 </template>
 
 <script>
 
 import VyButtonContext from '../../../../Apps/viteyss-site-settings1/UiAssets/vyButtonContext.vue';
+import { msToDurationString } from './libs';
+
 
 export default{
-components:{
-    "VYButtonContext": VyButtonContext
-},
-emits:[ 'file-select-update' ],
-props: [ 'item','fInfo', 'fNo', 'fSelect', 'rate', 'opts' ],
-data(){ return { showFileInfo:false }; },
-methods:{
-    getName(){ return this.item.substring( this.item.lastIndexOf('/')+1 ); },
-    getDirname(){ return this.item.substring( 0, this.item.lastIndexOf('/') ); },
-    dofInfo(){ 
-        let tr = []; 
-        for(let k of Object.keys( this.fInfo  )){
-            tr.push( `<small>${k}: </small>${this.fInfo[ k ]}` );
-        }
-        console.log('fInfo: ',tr.join('<br>'));
-        return tr.join('<br>');
+    components:{
+        "VYButtonContext": VyButtonContext
     },
-}
+    emits:[ 'file-select-update' ],
+    props: { 
+        'quest':{ type: Object, default: {}} ,
+        'fNo':{ type: Number, default: -1}, 
+        'fSelect':-1, 
+    },
+    data(){ 
+        return { 
+            showFileInfo:false
+        }; 
+    },
+    methods:{
+        getName(){ 
+            let file = `${this.quest.files[ this.fNo ]}`;
+            return file == '' ? '' : file.substring( file.lastIndexOf('/')+1 ); 
+        },
+        getDirname(){ 
+            let file = `${this.quest.files[ this.fNo ]}`;
+            return file == '' ? '' : file.substring( 0, file.lastIndexOf('/') ); 
+        },
+        dofInfo(){ 
+            
+            let tr = []; 
+            for(let k of Object.keys( this.quest.fInfos[ this.fNo ]  )){
+                tr.push( `<small>${k}: </small>${this.quest.fInfos[ k ]}` );
+            }
+            console.log('fInfo: ',tr.join('<br>'));
+            return tr.join('<br>');
+        },
+
+        getClipNiceStr(){
+            let opt = this.quest.opts[ this.fNo ];
+            return opt.clipFrom !=0 || opt.clipTo != -1 ? 
+                '['+msToDurationString( opt.clipFrom )+" - "+msToDurationString( opt.clipTo )+"] ":
+                '';
+        },
+
+
+        msToDurationString(sec){ 
+            return msToDurationString( sec );
+        },
+    }
 }
 </script>

@@ -1,0 +1,14 @@
+/////////////////////////
+ffmpeg -i ./05\ Star\ Wars\ Episode\ V\ The\ Empire\ Strikes\ Back\ -\ George\ Lucas\ 1980\ Eng\ Subs\ 720p\ \[H264-mp4\].mp4 -ss 00:47:20 -to 00:50:25 -c copy clip.mp4
+
+////////////////////////
+f="/home/iloo/Videos/sv_oiysh/footage/2025/02/VID_20250204_114113.mp4"; ffmpeg -i $f -vf "transpose=2" $f"_rotate.mp4"
+
+
+//////////////////////
+ffmpeg -i Videos/sv_oiysh/Quest-54/footage/5/MVI_4593.MOV -vf vidstabdetect=stepsize=32:shakiness=7:accuracy=10:result=transform_vectors.trf -f null -  
+
+ffmpeg -i Videos/sv_oiysh/Quest-54/footage/5/MVI_4593.MOV -vf vidstabtransform=input=transform_vectors.trf:zoom=0:smoothing=10,unsharp=5:5:0.8:3:3:0.4 -c:v libx264 -preset slow -crf 18 -c:a copy Videos/sv_oiysh/Quest-54/footage/5/MVI_4593_stabi.MOV
+  
+  
+  

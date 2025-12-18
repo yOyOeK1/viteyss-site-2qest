@@ -4,7 +4,7 @@
         <video autoplay width="100%" height="220"
             controls="1"
             id="myVidPla"
-            style="border:1px red solid;background-color: black;"
+            style="background-color: black;padding:10px;"
             :onloadeddata="currentTime!=-1?`this.currentTime=`+currentTime+`;this.pause();`:''"
             
             >
@@ -26,6 +26,7 @@ computed:{
      getNiceSrc( ){
         console.log( 'video player src: '+this.mySrc);
 
+        /*
         if( this.currentTime != -1 ){
             let vp = document.getElementById('myVidPla');
             setTimeout(()=>{ 
@@ -35,6 +36,7 @@ computed:{
                 //loadeddata="onLoadedVideo"
             },500);
         }
+            */
 
         return this.mySrc;
     }
