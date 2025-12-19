@@ -67,12 +67,14 @@ function msToTime(duration) {
 }
 
 function jsonToShs( j ){
-    let shs = ['-------------------\n\n\n\n',
+    let shs = ['#-------------------\n\n\n\n',
         '# 2 Qest  '+j.qest.name,
-        'tDir=`mktemp -d`',
-        'mkdir $tDir"/_Ready"',
-        'echo "temp dir is [$tDir]"',
-        'cd $tDir'
+        //'tDir=`mktemp -d`',
+        //'mkdir $tDir"/_Ready"',
+        'mkdir "./_Ready"',
+        'echo " * temp dir is [$(pwd)]" . . . . .',
+        //'sleep 1',
+        //'cd $tDir'
         
     ];
     console.log(j);
@@ -154,6 +156,9 @@ cp "${dirname}/${filename}" './file${f}${ext}'
         }
 
     }
+    shs.push(`echo "_Ready in: [ $(pwd)/_Ready ]"`);
+    shs.push(`#DONE`);
+    
     return shs;
 }
 
