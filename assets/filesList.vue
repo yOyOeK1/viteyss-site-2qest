@@ -12,10 +12,11 @@ files: ({{ qest.files.length }})
 
 Selection ({{ fSelect }}):
 <div
-    v-for="fItem,fNo in qest.files">
+    v-for="fItem,fNo in qest.files"
+    style="padding-bottom:10px;">
 
     
-     <FFile      
+    [{{ fNo }}] <FFile      
         v-if="1"   
         :qest="qest"
         :fNo="fNo"
@@ -25,7 +26,7 @@ Selection ({{ fSelect }}):
 
 
     <div v-if="fNo==fSelect"
-        style="background-color: black; color:white;">
+        style="background-color: #242e41; color:white;">
         <VideoPlayer
             :mySrc="`/@fs`+fItem"
             :currentTime="qest.opts[ fNo ]['clipFrom']!=0?qest.opts[ fNo ]['clipFrom']:qest.opts[ fNo ]['currentTime']"
@@ -173,9 +174,18 @@ data(){
 
 },
 methods:{
-
+    onSetQest( data ){
+        console.log(' new qest ',data);
+        this.fSelect = -1;
+        this.qest = data.qest;
+        this.fSelect = data.fSelect;
+    },
     onGetQest(){
-        return this.qest;
+        return {
+            qest:this.qest,
+            fSelect: this.fSelect,
+            goToNext: this.goToNext,            
+        };
     },
     onMakeCopyClip( fNo ){
         console.log('clon ....',fNo);
