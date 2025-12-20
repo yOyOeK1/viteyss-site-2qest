@@ -9,5 +9,9 @@
   },
   "author": "Bartłomiej Ceglik <yoyoek@wp.pl>",
   "license": "MIT",
-  "description": "To asist in process of collecting multimedia to qest a.k.a. video."
+  "description": "To asist in process of collecting multimedia to qest a.k.a. video.",
+  "dependencies": {
+    "netcat": "^1.5.0",
+    "node-netcat": "^1.4.8"
+  }
 }
