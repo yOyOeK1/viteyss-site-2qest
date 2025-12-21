@@ -41,7 +41,7 @@ fi
 
 if test $argsC -eq 2; then
 
-    echo "args 2 [$1]"
+    #echo "args 2 [$1]"
 
     exec $ucon $2
 
@@ -49,7 +49,7 @@ fi
 
 if test $argsC -eq 3; then
 
-    echo "args 3 [$1]"
+    #echo "args 3 [$1]"
     exec $ucon -o ExitOnForwardFailure=yes $2
     exit $?
 fi

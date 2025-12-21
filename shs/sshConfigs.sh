@@ -28,5 +28,14 @@ if test $1 = "local";then
     exit 0
 fi
 
+if test $1 = "iloo";then
+    if test $2 = "user"; then
+        echo "iloo@192.168.43.88"
+    elif test $2 = "port"; then
+        echo "22"
+    fi
+    exit 0
+fi
+
 echo "EE no userConfig"
 exit -1

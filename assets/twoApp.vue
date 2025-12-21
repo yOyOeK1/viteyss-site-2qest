@@ -22,7 +22,17 @@ cli:
 <button @click="onExecCli('df -hm')">df</button>
 <button @click="onExecCli('pwd')">pwd</button>
 <button @click="onExecCli('ls /tmp')">ls /tmp</button>
-<input type="text" @change="onExecCli($event.target.value)"></input>
+<button @click="onExecCli('cd ../viteyss-site-2qest/shs; ./cmdInSsh.sh h free true')">free at hu</button>
+<br></br>
+<input type="text" v-model="inputCmd" ></input>
+<button @click="onExecCli(inputCmd)">local</button>
+<button @click="onExecCliOfInput('h')">to hu</button>
+<button @click="onExecCliOfInput('iloo')">to ilo</button>
+
+
+
+<hr></hr>
+
 
 
 
@@ -49,6 +59,15 @@ components:{
     "TwoSplash": Splash,
     "TwoFileList": FilesList
 },
+mounted(){
+    setTimeout(()=>{
+
+        let f = '';
+        f = 'nst/2qest/251219tt_setOfTwo.js';
+        this.test_loadFileOnStart( f );
+
+    },1000);
+},
 data(){
 
     let mStatus = 'loaded';
@@ -61,7 +80,7 @@ data(){
         mStatus,
         file: qArg,
         
-
+        inputCmd: ''
     };
 },
 methods:{
@@ -71,13 +90,25 @@ methods:{
         setOpts.FileDialog('save', JSON.dumpNice( q ) );
 
     },
+
+    /** so one liner iFs file load */
+    async test_loadFileOnStart( iFsPath = undefined ){
+        let f = await iFs.readFile( iFsPath);
+        this.onLoadFromJson( JSON.parse(f) );
+
+    },
+
+    onLoadFromJson( j ){
+        this.$refs.tfl.onSetQest( j );
+    },
+
     onLoad(){
         let fd = null;
         let onLoadDone = ( msg ) => {
             console.log('ok so data to load is \n\n',msg,'\n\n');
             //this.onLoadToLocalFromString( msg );
             let j = JSON.parse( msg );
-            this.$refs.tfl.onSetQest( j );
+            this.onLoadFromJson( j );
             fd.app.closePanel();
         }; 
 
@@ -110,10 +141,18 @@ methods:{
         }
     },
 
+    onExecCliOfInput( toWho = 'local' ){
+        this.onExecCli(
+            `cd ../viteyss-site-2qest/shs; ./cmdInSsh.sh ${toWho} "${this.inputCmd}" true`
+        );
+    },
+
+
     /*
 ottO.newTask({'q':'exeIt/{"webCmdSubProcess": "[sh,-c,cal]","mqtt":false,"stdout":"0","pH":"-1"}'}).then(r=>console.log( `resq:[ \n`,JSON.dumpNice(JSON.parse(r)),`\n ]` ));
     */
     onExecCli( cmd ){
+        
         let cEx = `[sh,-c, ${cmd}]`;
         let cmdTem = {
             "webCmdSubProcess": `b64[${btoa(cmd)}]`,
@@ -122,7 +161,21 @@ ottO.newTask({'q':'exeIt/{"webCmdSubProcess": "[sh,-c,cal]","mqtt":false,"stdout
         };
         ottO.newTask({
             'q': 'exeIt/'+JSON.stringify( cmdTem )
-        }).then(r=>console.log( `resq:[ \n`,JSON.dumpNice(JSON.parse(r)),`\n ]` ));
+        }).then(r=>{
+            console.log( `resq:[ \n`,JSON.dumpNice(JSON.parse(r)),`\n ]` );
+            let j = JSON.parse( r );
+            if( j.length != 2 || j[0] != 0 || j[1][ j[1].length-1 ] != "" ){
+                console.log('EE cmd back wrong !');
+                return -1;
+            }else{
+                let msgL = j[1];
+                msgL.splice( msgL.length-1, 1 );
+                console.log(`Ruselt for cmd \n * cmd: ${cmd}\n * result :\n`,msgL,"\n-------------------");
+
+            }
+
+
+        });
     }
 }
 
