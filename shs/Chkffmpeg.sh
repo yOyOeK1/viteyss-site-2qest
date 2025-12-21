@@ -1,7 +1,7 @@
 
 
 # example
-# ./ffmpegChk.sh
+# ./Chkffmpeg.sh
 #
 # return 0 | 1
 

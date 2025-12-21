@@ -6,14 +6,14 @@ argsC=$#
 
 #
 # example
-# ./cmdInSsh.sh h "cal"
-# userConfig h
-# cmd "cal"
+# ./cmdTry.sh "cal" "abc1" 1;
+# cmod "cal"
+# tryId "abc1"
 #
 # return 0
 #
 
-# userConfig cmd wait
+# cmd tryId stdToFileLog
 argsMin=2
 
 
@@ -21,10 +21,13 @@ ucon=""
 if test $argsC -ge 2; then
     {
         #echo "ok rout ident[$2]"
-        tFile="./CTryid_$2"
+        tFile="./CTryId_$2"
+        cmd="$1!"
         echo "# tFile:   [ $tFile ]"
-        echo "# cmd:     [ $1 ]"
+        echo "# cmd:     [ $cmd ]"
         echo "# argsC:   [ $argsC ]"
+
+
 
         if test -f $tFile"_0_start"; then
             echo "EE files are present for try ...."
@@ -34,14 +37,15 @@ if test $argsC -ge 2; then
             echo "ok"
         fi
 
+        echo "$cmd" > "$tFile""_0_cmd"
         touch "$tFile""_0_start"
         
         if test $argsC -eq 3; then
             #echo "do to log"
-            sh -c "$1" > "$tFile""_1_std_log"
+            sh -c "$cmd" > "$tFile""_1_std_log"
             res=$?
         else
-            sh -c "$1" 
+            sh -c "$cmd" 
             res=$?
         fi
         
