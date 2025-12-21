@@ -28,6 +28,7 @@ cli:
 <button @click="onExecCli(inputCmd)">local</button>
 <button @click="onExecCliOfInput('h')">to hu</button>
 <button @click="onExecCliOfInput('iloo')">to ilo</button>
+<button @click="onExecCliOfInput('all')">all</button>
 
 
 
@@ -142,9 +143,15 @@ methods:{
     },
 
     onExecCliOfInput( toWho = 'local' ){
-        this.onExecCli(
-            `cd ../viteyss-site-2qest/shs; ./cmdInSsh.sh ${toWho} "${this.inputCmd}" true`
-        );
+
+        if( toWho == 'all'){
+            for(let agent of ['local','h','iloo'] ){
+                this.onExecCli( `cd ../viteyss-site-2qest/shs; ./cmdInSsh.sh ${agent} "${this.inputCmd}" true` );
+            }
+        }else{
+            this.onExecCli( `cd ../viteyss-site-2qest/shs; ./cmdInSsh.sh ${toWho} "${this.inputCmd}" true` );
+        }
+
     },
 
 
@@ -157,7 +164,7 @@ ottO.newTask({'q':'exeIt/{"webCmdSubProcess": "[sh,-c,cal]","mqtt":false,"stdout
         let cmdTem = {
             "webCmdSubProcess": `b64[${btoa(cmd)}]`,
             "mqtt":0,
-            "pH":3
+            "pH":'i'+Date.now()+Math.random()
         };
         ottO.newTask({
             'q': 'exeIt/'+JSON.stringify( cmdTem )
