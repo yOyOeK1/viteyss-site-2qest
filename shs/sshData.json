@@ -1,0 +1,24 @@
+[
+    {
+	"name": "hu",
+	"user": "a@hu",
+	"port": 2222,
+	"home": "/data/data/com.termux/files/usr/tmp/2Qhu",
+	"filesystem":"/dev/block/by-name/userdata"
+    },
+    {
+	"name": "local",
+	"user": "yoyo@192.168.43.220",
+	"port": 2222,
+	"home": "/tmp/2QLocal",
+	"filesystem":"/dev/sda1"
+    },
+    {
+    "name": "iloo",
+	"user": "iloo@192.168.43.88",
+	"port": 22,
+	"home": "/tmp/2QLocal",
+	"filesystem":"/dev/sda1"
+    }
+
+]
