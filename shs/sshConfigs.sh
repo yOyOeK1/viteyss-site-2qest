@@ -10,11 +10,13 @@ if test $argsC -lt 2; then
     exit -1
 fi
 
-if test $1 = "h";then
+if test $1 = "hu";then
     if test $2 = "user"; then
         echo "a@hu"
     elif test $2 = "port"; then
         echo "2222"
+    elif test $2 = "home"; then
+        echo "/data/data/com.termux/files/usr/tmp/2Qhu"
     fi
     exit 0
 fi
@@ -24,6 +26,8 @@ if test $1 = "local";then
         echo "yoyo@192.168.43.220"
     elif test $2 = "port"; then
         echo "2222"
+    elif test $2 = "home"; then
+        echo "/tmp/2Qlocal"
     fi
     exit 0
 fi
@@ -33,6 +37,8 @@ if test $1 = "iloo";then
         echo "iloo@192.168.43.88"
     elif test $2 = "port"; then
         echo "22"
+    elif test $2 = "home"; then
+        echo "/tmp/2Qiloo"
     fi
     exit 0
 fi
