@@ -25,7 +25,7 @@ if test $argsC -lt 2; then
 fi
 
 
-j=`./sshConfigsJson.sh "$1"`
+j=`sshConfigsJson.sh "$1"`
 if test $? -ne 0; then
     exit $?
 fi

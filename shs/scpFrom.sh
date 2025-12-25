@@ -27,8 +27,8 @@ argsMin=3
 
 
 if test $argsC -eq 3; then
-    sU=`./sshConfigs.sh $1 user`
-    sP=`./sshConfigs.sh $1 port`
+    sU=`sshConfigs.sh $1 user`
+    sP=`sshConfigs.sh $1 port`
     scp -P $sP "$sU"":""$2" "$3"
     res=$?
     exit $res

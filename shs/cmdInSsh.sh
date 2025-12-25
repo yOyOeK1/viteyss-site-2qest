@@ -33,9 +33,9 @@ ucon=""
 userN="$1"
 cmd="$2"
 if test $argsC -ge 1; then
-    sU=`./sshConfigs.sh $userN user`
-    sP=`./sshConfigs.sh $userN port`
-    sD=`./sshConfigs.sh $userN home`
+    sU=`sshConfigs.sh $userN user`
+    sP=`sshConfigs.sh $userN port`
+    sD=`sshConfigs.sh $userN home`
 
     if test $? = 0; then
         ucon="ssh $sU -p $sP "
