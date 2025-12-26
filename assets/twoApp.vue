@@ -2,25 +2,67 @@
 
 
 
-2 App mStatus:({{ mStatus }})
+<div
+    class="twoAppBar"
+    style="
+        background-color: darkgreen;
+        color: white;
+        border-bottom: 2px solid black;
+        font-size: 80%;
+        
+    ">
+    2App | mStatus:({{ mStatus }})
+
+
+</div>
+
+
 <!--
     <div style="display: inline-block;">
         <TwoSplash />
     </div>
     -->
+<div
+    class="twoAppBar"
+    style="
+        background-color: rgb(60, 45, 59);
+        color: white;
+        border-bottom: 2px solid black;
+        font-size: 80%;
+              
+    "
+    >
 
 
-<button @click="onLoad()">Load</button>
-<button @click="onSave()">Save</button>
-<button @click="onClean()">Clean</button>
+    <VYButtonContext
+        
+        title="File / new / open / save ..."
+        icon="<i class='fa-solid fa-ellipsis-vertical'></i>"
+        v-model:is-showing="showMenuFile"
+        >
+        <pre><b>Files:</b>
+        <button @click="onClean()"><i class="fa-solid fa-file-circle-plus"></i>New file ...</button>
+        <button @click="onLoad()"><i class="fa-solid fa-upload"></i>Open file ...</button>
+        <button @click="onSave()"><i class="fa-solid fa-floppy-disk"></i>Save file as ...</button></pre>
 
-<select v-model="cliType">
-    <option v-for="cliT in cliTypes" >{{ cliT }}</option>
-</select>
-<button @click="onCli()">Cli</button>
+    </VYButtonContext>
+
+    |
+
+    <select v-model="cliType">
+        <option v-for="cliT in cliTypes" >{{ cliT }}</option>
+    </select>
+    <button @click="onCli()">Cli</button>
+
+    |
+
+    <input type="checkbox" v-model="debExec"
+        title="debug stuff"></input>
+
+</div>
 
 
-<input type="checkbox" v-model="debExec"></input>
+
 <div v-if="debExec">
 
     cli:
@@ -46,7 +88,7 @@
 
 
 
-<div v-if="file!=-1">
+<div v-if="file!=-1" style="display: inline;">
     <TwoFileList 
         ref="tfl"
         :qestAs="file"
@@ -59,16 +101,27 @@
 
 </template>
 
+<style>
+.twoAppBar{
+    padding: 5px;
+}
+
+
+</style>
+
+
 <script>
 import { jsonToShs, vyArgsChk } from '../libs/vyArgs';
+import {toRaw} from 'vue';
 import FilesList from './filesList.vue';
 import Splash from './splash.vue';
-import {toRaw} from 'vue';
+import VyButtonContext from '@viteyss-site-settings1/UiAssets/vyButtonContext.vue';
 
 export default{
 components:{
     "TwoSplash": Splash,
-    "TwoFileList": FilesList
+    "TwoFileList": FilesList,
+    "VYButtonContext": VyButtonContext,
 },
 mounted(){
     setTimeout(()=>{
@@ -89,21 +142,28 @@ data(){
         mStatus = 'argsStart';
     }
     return {
+
+        showMenuFile: false,
+
         mStatus,
         file: qArg,
         debExec: false,
-        cliType: 'sh',
-        cliTypes: ['sh','shs','agent'],
+        cliType: 'sh', 
+        cliTypes: ['sh','shs','twoCount'],
         
         inputCmd: ''
     };
 },
 methods:{
-    onSave(){
+    onSave( cbOnSave = undefined ){
         let q = JSON.cloneRaw( this.$refs.tfl.onGetQest() );
         console.log('q now : ',JSON.dumpNice( q ));
-        setOpts.FileDialog('save', JSON.dumpNice( q ) );
-
+        setOpts.FileDialog('save', {
+            ext:'.2qest',
+            data:JSON.dumpNice( q ),
+            onSave: cbOnSave
+        } );
+        this.showMenuFile = false;
     },
 
     /** so one liner iFs file load */
@@ -118,6 +178,19 @@ methods:{
     },
 
     onLoad(){
+        let qRes =this.$refs.tfl.onCanDoNewQery( 'loading' );
+        this.showMenuFile = false;
+        if( qRes == 'ok' ){
+            this.onLoad_execute();
+        }else if( qRes == 'save' ){
+            let cbOnSave = ( event = 'NaN' ) => {
+                console.log( 'load after save. event:',event);
+                this.onLoad_execute();
+            };
+            this.onSave( cbOnSave );
+        }
+    },
+    onLoad_execute(){
         let fd = null;
         let onLoadDone = ( msg ) => {
             console.log('ok so data to load is \n\n',msg,'\n\n');
@@ -129,12 +202,38 @@ methods:{
 
         fd = setOpts.FileDialog('load',{'onDone':onLoadDone});
     },
+    
+
+
+    onClean(){
+        let qRes =this.$refs.tfl.onCanDoNewQery( 'new' );
+        if( qRes == 'ok' ){
+            this.$refs.tfl.onClean();
+        }else if( qRes == 'save' ){
+            let cbOnSave = ( event = 'NaN' ) => {
+                console.log( 'make clear after save. event:',event);
+                this.$refs.tfl.onClean();
+            };
+            this.onSave( cbOnSave );
+        }
+        this.showMenuFile = false;
+    },
+
+
     onCli( action = 'save' ){
         let q = JSON.cloneRaw( this.$refs.tfl.onGetQest() );
         let shs = jsonToShs( q, toRaw( this.cliType )  );
 
         if( action == 'save' )
-            setOpts.FileDialog('save', shs.join('\n') );
+            
+        
+        setOpts.FileDialog('save', {
+            ext:'.'+this.cliType,
+            data: shs.join('\n'),
+        });
+
+
+
         else{
 
             this.onExecCli(
@@ -204,3 +303,4 @@ ottO.newTask({'q':'exeIt/{"webCmdSubProcess": "[sh,-c,cal]","mqtt":false,"stdout
 }
 
 </script>
+

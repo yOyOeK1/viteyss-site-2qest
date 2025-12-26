@@ -4,19 +4,27 @@
 
 
 
-<pre>
-Qest: <input type="input" v-model="qest.name">
-files: ({{ qest.files.length }}) 
-</pre>
+<div
+    class="twoAppBar"
+    style="background-color: darkolivegreen; color: white;">
+    2Qest: <input type="input" v-model="qest.name" style="width:120px;">
 
+    <span title="medias in this qest">
+        <i class="fa-solid fa-file-video"></i>
+        ({{ qest.files.length }}) 
+    </span>
+</div>
 
-Selection ({{ fSelect }}):
+<!--
+    Selection ({{ fSelect }}):
+-->
 <div
     v-for="fItem,fNo in qest.files"
     style="padding-bottom:10px;">
 
     
-    [{{ fNo }}] <FFile      
+    [{{ fNo }}] <FFile   
+        style="display: inline;"   
         v-if="1"   
         :qest="qest"
         :fNo="fNo"
@@ -174,6 +182,26 @@ data(){
 
 },
 methods:{
+    onCanDoNewQery( query = '' ){
+        console.log( 'can do new ?', {fSelect:this.fSelect,qest:this.qest} );
+        if( this.fSelect != -1 ){
+            let saveQ = false;
+            if( query == 'new')
+                saveQ = confirm("Save 2qest befor making new one?");
+            else if( query == 'loading')
+                saveQ = confirm("Save 2qest befor loading?");
+
+
+            if( saveQ ) return 'save';
+            else return 'ok';
+        }
+        return 'ok';
+    },
+    onClean(){  this.onSetQest({
+            qest:{},
+            fSelect:-1
+        });
+    },
     onSetQest( data ){
         console.log(' new qest ',data);
         this.fSelect = -1;
@@ -232,8 +260,10 @@ methods:{
 
     onIsRate(fItem, rate){
         this.qest.rates[ fItem ]= rate;
-        if( this.qest.files.length >= this.fSelect-1 && this.goToNext )
+        if( this.qest.files.length >= this.fSelect-1 && this.goToNext ){
+            
             this.fSelect++;
+        }
 
     },
 
