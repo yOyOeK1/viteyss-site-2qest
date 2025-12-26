@@ -13,11 +13,19 @@
 <button @click="onLoad()">Load</button>
 <button @click="onSave()">Save</button>
 <button @click="onClean()">Clean</button>
+
+<select v-model="cliType">
+    <option v-for="cliT in cliTypes" >{{ cliT }}</option>
+</select>
 <button @click="onCli()">Cli</button>
 
-cli:
-<button @click="onCli('exe')">EXE</button>
-<button @click="onExecCli('cal')">call</button>
+
+<input type="checkbox" v-model="debExec"></input>
+<div v-if="debExec">
+
+    cli:
+    <button @click="onCli('exe')">EXE</button>
+    <button @click="onExecCli('cal')">call</button>
 <button @click="onExecCli('free')">free</button>
 <button @click="onExecCli('df -hm')">df</button>
 <button @click="onExecCli('pwd')">pwd</button>
@@ -33,6 +41,7 @@ cli:
 
 
 <hr></hr>
+</div>
 
 
 
@@ -54,6 +63,7 @@ cli:
 import { jsonToShs, vyArgsChk } from '../libs/vyArgs';
 import FilesList from './filesList.vue';
 import Splash from './splash.vue';
+import {toRaw} from 'vue';
 
 export default{
 components:{
@@ -65,6 +75,7 @@ mounted(){
 
         let f = '';
         f = 'nst/2qest/251219tt_setOfTwo.js';
+        f = 'nst/251226tt094859_2q_test1.js';
         this.test_loadFileOnStart( f );
 
     },1000);
@@ -80,6 +91,9 @@ data(){
     return {
         mStatus,
         file: qArg,
+        debExec: false,
+        cliType: 'sh',
+        cliTypes: ['sh','shs','agent'],
         
         inputCmd: ''
     };
@@ -117,7 +131,7 @@ methods:{
     },
     onCli( action = 'save' ){
         let q = JSON.cloneRaw( this.$refs.tfl.onGetQest() );
-        let shs = jsonToShs( q );
+        let shs = jsonToShs( q, toRaw( this.cliType )  );
 
         if( action == 'save' )
             setOpts.FileDialog('save', shs.join('\n') );

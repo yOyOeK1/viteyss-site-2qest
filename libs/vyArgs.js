@@ -66,18 +66,24 @@ function msToTime(duration) {
   return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
 }
 
-function jsonToShs( j ){
-    let shs = ['#-------------------\n\n\n\n',
-        '# 2 Qest  '+j.qest.name,
+function jsonToShs( j, cliType = 'sh' ){
+    let shs = [
+        "#!/bin/bash",
+        '#-------------------\n\n',
+        '# stop on any error .....',
+        'set +e\n\n',
+        '# 2 Qest  '+j.qest.name,'\n',
+        `# cliType: [${cliType}]\n`,
         //'tDir=`mktemp -d`',
         //'mkdir $tDir"/_Ready"',
+        'echo " * winking dir is [$(pwd)] . . . . . all good? (wait 5 sec)"',
+        'sleep 5',
         'mkdir "./_Ready"',
-        'echo " * temp dir is [$(pwd)]" . . . . .',
-        //'sleep 1',
-        //'cd $tDir'
-        
+        //'cd $tDir'        
     ];
-    console.log(j);
+
+
+
     let q = j.qest;
     let fOkNo = 0;
     for( let f=0,fc=q.files.length; f<fc; f++ ){
@@ -93,68 +99,97 @@ function jsonToShs( j ){
         let opt = q.opts[ f ];
         if( q.rates[ f ] == 'ok' ){
 
-            shs.push(`\n
-#   file no: ${f} 
-touch './_Ready/${f}_status_START'
-cp "${dirname}/${filename}" './file${f}${ext}'
-                `);
+            shs.push(`
+
+# file no: ${f} START
+
+touch './_Ready/${f}__status_00_START'
+
+touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
+
+            if( cliType == 'sh' ){
+                shs.push(`cp "${dirname}/${filename}" './file${f}${ext}'`);
+
+            }else if( cliType == 'shs' ){
+                shs.push(`scpFrom.sh local "${dirname}/${filename}" './file${f}${ext}'`);
+
+            }
+            shs.push(`touch './_Ready/${f}__status_02_DOWNLOAD_END'`);
+
 
             console.log(`   - opts :`,JSON.stringify( opt ),
                 '\n dirname: ',dirname,
                 '\n filename: ',filename,
                 '\n ext: ',ext );
             let fNameLast = `${f}`;
-
+            
+            shs.push(`touch './_Ready/${f}__status_03_WORK_STAR'`);
 
             if( opt.clipTo > opt.clipFrom ){
 
                 if( opt.clipFrom != 0 ||
                     ( opt.clipTo != opt.duration && opt.clipTo > opt.clipFrom )
                 ){
+                    shs.push(`touch './_Ready/${f}__status_04_CLIP_STAR'`);
                     let tStart = msToTime( parseInt(opt.clipFrom*1000.00) );
                     let tTotal = msToTime( parseInt(opt.clipTo*1000.00) );
-                    shs.push(`#     * clip ${opt.clipFrom} - ${opt.clipTo}\n`+
-                        `ffmpeg -i './file${fNameLast}${ext}' -ss ${tStart} -to ${tTotal} -c copy './file${fNameLast}Clip${ext}'`
-                        );
+                    shs.push(`# --- clip ${opt.clipFrom} - ${opt.clipTo}`);
+                    shs.push(`ffmpeg -i './file${fNameLast}${ext}' -ss ${tStart} -to ${tTotal} -c copy './file${fNameLast}Clip${ext}'`);
+                    shs.push(`touch './_Ready/${f}__status_05_CLIP_END'`);
                     fNameLast+= 'Clip';
                 }
             }
 
 
             if( opt.stabilize ){
-                shs.push(`#     * stabilize`);
-                shs.push(`touch './_Ready/${f}_status_STAB'`);
+                shs.push(`# --- stabilize`);
+                shs.push(`touch './_Ready/${f}__status_06_STABpass1'`);
                 shs.push(`ffmpeg -i './file${fNameLast}${ext}' -vf vidstabdetect=stepsize=32:shakiness=7:accuracy=10:result=file${fNameLast}_stab_tvs.trf -f null -`);
-                shs.push(`touch './_Ready/${f}_status_STABpass2'`);
+                shs.push(`touch './_Ready/${f}__status_07_STABpass2'`);
                 shs.push(`ffmpeg -i './file${fNameLast}${ext}' -vf vidstabtransform=input=file${fNameLast}_stab_tvs.trf:zoom=0:smoothing=10,unsharp=5:5:0.8:3:3:0.4 -c:v libx264 -preset slow -crf 18 -c:a copy './file${fNameLast}Stab${ext}'`);
-            
                 fNameLast+= 'Stab';
             }
 
             if( opt.rotMin ){
-                shs.push(`#     * rotMin\n`+
-                    `ffmpeg -i './file${fNameLast}${ext}' -vf "transpose=2" './file${fNameLast}RotM${ext}'`
-                );
+                shs.push(`# --- rotMin`);+
+                shs.push(`touch './_Ready/${f}__status_08_rotMin'`);
+                shs.push(`ffmpeg -i './file${fNameLast}${ext}' -vf "transpose=2" './file${fNameLast}RotM${ext}'`);
                 fNameLast+= 'RotM';
 
             }
 
             if( opt.rotPlu ){
-                shs.push(`#     * rotPlu\n`+
-                    `ffmpeg -i './file${fNameLast}${ext}' -vf "transpose=1" './file${fNameLast}RotP${ext}'`
-                    );
+                shs.push(`# --- rotPlu`);
+                shs.push(`touch './_Ready/${f}__status_09_rotPlu'`);
+                shs.push(`ffmpeg -i './file${fNameLast}${ext}' -vf "transpose=1" './file${fNameLast}RotP${ext}'`);
                 fNameLast+= 'RotP';
                 
             }
-            
-            
-            shs.push(`cp './file${fNameLast}${ext}' './_Ready/${f}_${fileNoExt}_${j.qest.name}${ext}'`);
-            shs.push(`touch './_Ready/${f}_status_DONE'`);
-        }else{
-            shs.push(`touch './_Ready/${f}_${fileNoExt}_2q${ext}_asRate_${q.rates[ f ]}'`);
-            shs.push(`touch './_Ready/${f}_status_000${q.rates[ f ]}'`);
-        }
 
+            shs.push(`mv './file${fNameLast}${ext}' './file${f}_DONE${ext}'`);
+            
+            shs.push(`touch './_Ready/${f}__status_10_WORK_END'\n`);
+                //'./${f}_${j.qest.name}_${fileNoExt}_${ext}'`);
+
+
+            shs.push(`touch './_Ready/${f}__status_11_UPLOAD_START'`);
+            if( cliType == 'sh' ){
+                shs.push(`cp "./file${f}_DONE${ext}" "./_Ready/${j.qest.name}_${f}_${fileNoExt}_"$qAgent"_${ext}"`);
+                
+            } else if( cliType == 'shs' ){
+                shs.push(`scpIt.sh local "./file${f}_DONE${ext}" "${dirname}/${j.qest.name}_${f}_${fileNoExt}_"$qAgent"_${ext}"`);
+
+            }
+            shs.push(`touch './_Ready/${f}__status_14_UPLOAD_FINISH'`);
+
+
+            shs.push(`\n# file no: ${f} END\n\n`);
+        }
+        
+        let rate = q.rates[ f ]?q.rates[ f ]:'NaN';
+        shs.push(`touch './_Ready/${f}_${fileNoExt}_2q${ext}_asRate_${rate}'`);
+        shs.push(`touch './_Ready/${f}__status_000${rate}'`);
+        
     }
     shs.push(`echo "_Ready in: [ $(pwd)/_Ready ]"`);
     shs.push(`#DONE`);
