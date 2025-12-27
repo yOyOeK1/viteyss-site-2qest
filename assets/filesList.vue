@@ -34,12 +34,15 @@
 
 
     <div v-if="fNo==fSelect"
-        style="background-color: #242e41; color:white;">
-        <VideoPlayer
-            :mySrc="`/@fs`+fItem"
-            :currentTime="qest.opts[ fNo ]['clipFrom']!=0?qest.opts[ fNo ]['clipFrom']:qest.opts[ fNo ]['currentTime']"
-            @two-qest-video-update="onEmit_videoUpdate"
-            />
+        style="background-color: #242e41; color:white; align-self: center;">
+        <!--
+            :mySrc="`file://`+fItem"
+            -->
+            <VideoPlayer
+                :mySrc="`/@fs`+fItem"
+                :currentTime="qest.opts[ fNo ]['clipFrom']!=0?qest.opts[ fNo ]['clipFrom']:qest.opts[ fNo ]['currentTime']"
+                @two-qest-video-update="onEmit_videoUpdate"
+                >abcx</VideoPlayer>
 
         
 
@@ -52,7 +55,7 @@
 
 
         
-        <button @click="onStopForNotes( fNo,'from' )">from</button>
+        <button titel="clip from current position" @click="onStopForNotes( fNo,'from' )"><img src="@viteyss-site-2qest/assets/ico_brackFromW_16_16.png"></img></button>
         <button @mousedown.prevent="onStopForNotes( fNo, '--d' )" @mouseup.prevent="onStopForNotes( fNo, '--u' )"
             @touchdown.prevent="onStopForNotes( fNo, '--d' )" @touchup.prevent="onStopForNotes( fNo, '--u' )"
             ><</button>
@@ -65,10 +68,14 @@
         <button @mousedown.prevent="onStopForNotes( fNo, '++d' )" @mouseup.prevent="onStopForNotes( fNo, '++u' )"
             @touchdown.prevent="onStopForNotes( fNo, '++d' )" @touchup.prevent="onStopForNotes( fNo, '++u' )"
             >></button>
-        <button @click="onStopForNotes( fNo,'to' )">to</button>
+        <button  titel="clip to current position" @click="onStopForNotes( fNo,'to' )"><img src="@viteyss-site-2qest/assets/ico_brackToW_16_16.png"></img></button>
 
-        {{ qest.opts[ fNo ]['currentTime']==-1?'0':msToDurationString(qest.opts[ fNo ]['currentTime'])}} / 
+        {{ qest.opts[ fNo ]['currentTime']==-1?'0':msToDurationString(qest.opts[ fNo ]['currentTime'])}}
+         / 
         {{ qest.opts[ fNo ]['duration']==-1?'0':msToDurationString(qest.opts[ fNo ]['duration'])}}
+
+
+
 
         <div v-if="qest.opts[ fNo ]['clipTo']!=-1">
             Clip: 
@@ -102,6 +109,32 @@
        
         <hr></hr>
 
+        
+        <table style="width:95vw;">
+            <tr>
+                <td style="vertical-align: top;">
+                    <textarea
+                        rows="3"
+                        placeholder="Notes to it"
+                        style="width:100%;"
+                        v-model="qest.notes[ fNo ]"
+                            />
+
+                </td>
+                <td style="vertical-align: top; max-width: 160px;">
+                    <TagsColector
+                        :tags="qest.tags[ fNo ]"
+                        @tags-colector-add="onEmit_tagsAdd"
+                        @tags-colector-remove-index="onEmit_tagRemove"
+                        />
+                
+
+                </td>
+            </tr>
+        </table>
+
+    
+        <hr></hr>
 
 
         <input type="checkbox" v-model="goToNext" 
@@ -138,6 +171,8 @@
 import { vyArgsChk } from '../libs/vyArgs';
 import File from './file.vue';
 import { msToDurationString } from './libs';
+import TagsColector from './tagsColector.vue';
+
 import VideoPlayer from './videoPlayer.vue';
 import { toRaw } from 'vue';
 
@@ -150,6 +185,7 @@ props: [ 'qestAs' ],
 components:{
     "FFile": File,
     "VideoPlayer": VideoPlayer,
+    "TagsColector": TagsColector,
 },
 mounted(){
     if( this.qest.files.length > 0 )
@@ -168,6 +204,8 @@ data(){
             rates: rates,
             fInfos: fInfos,
             opts: opts,
+            notes: notes,
+            tags: tags,
         },*/
         fSelect: -1,
         goToNext: true,
@@ -206,6 +244,22 @@ methods:{
         console.log(' new qest ',data);
         this.fSelect = -1;
         this.qest = data.qest;
+        
+        // to update old files to current structure START
+        if( !('notes' in this.qest) ){
+            let n = new Array( this.qest.files.length );
+            n.forEach( i => i = '' );
+            this.qest['notes'] = n
+        }
+
+        if( !('tags' in this.qest) ){
+            let t = new Array( this.qest.files.length );
+            t.forEach( i => i = [] );
+            this.qest['tags'] = t
+        }
+        // to update old files to current structure END
+
+
         this.fSelect = data.fSelect;
     },
     onGetQest(){
@@ -221,8 +275,22 @@ methods:{
         this.qest.rates.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.rates[ fNo ] ))) );
         this.qest.fInfos.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.fInfos[ fNo ]))) );
         this.qest.opts.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.opts[ fNo ]))) );
+        this.qest.notes.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.notes[ fNo ]))) );
+        this.qest.tags.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.tags[ fNo ]))) );
+        //this.qest.notes.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.notes[ fNo ]))) );
+        //Object.keys( this.qest ).forEach( 
+        //    key => 
+        //        this.qest[ key ].splice( fNo, 0, JSON.cloneRaw( this.qest[ key ][ fNo ] ) ) 
+        //);
         if( this.qest.files.length >= this.fSelect-1 && this.goToNext )
             this.fSelect++;
+    },
+
+    onEmit_tagRemove( index ){
+        this.qest.tags[ this.fSelect ].splice( parseInt( index ), 1 );
+    },
+    onEmit_tagsAdd( event){
+        this.qest.tags[ this.fSelect ].push( `${event}` );
     },
 
     onEmit_fileSelectUpdate( event ){

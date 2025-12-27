@@ -1,10 +1,17 @@
 <template>
 
-    <div v-if="mySrc!=''">    
+    <div v-if="mySrc!=''"
+        style="position: relative;">    
+
+        
+
+
+
         <video 
             :autoplay="isAutoplay" 
             width="100%" height="220"
-            controls="0"
+            controls
+            ref="myVidPla"
             id="myVidPla"
             style="background-color: black;padding:10px;"
             >
@@ -12,9 +19,40 @@
             
             Your browser does not support the video tag.
         </video>
-    </div>    
 
+        <!--
+            <div id="custom-controls" class="controls">
+                slotStart[<slot></slot>] 
+                <a @click="$refs.myVidPla.requestFullscreen()">[f]</a>
+                slotEnd
+                
+            </div>
+            -->
+
+
+    </div>    
 </template>
+<style>
+    /*
+#myVidPla::-webkit-media-controls {
+  display: none !important;
+
+}
+#myVidPla{
+    z-index: 0;
+}
+#custom-controls {
+  position: absolute;
+  top: 10px;
+  left: 0px;
+  width: 100%;
+  z-index: 2147483647;
+  
+}
+
+*/
+</style>
+
 <script>
 
 export default{

@@ -4,6 +4,8 @@ function vyArgsChk ( qestName = 'NaNo.O' ){
     let rates = [];
     let fInfos = [];
     let opts = [];
+    let notes = [];
+    let tags = [];
 
     
     if( 'vyArgs' in process.env.vy_config ){
@@ -14,6 +16,8 @@ function vyArgsChk ( qestName = 'NaNo.O' ){
             for( let f of j ){
                 files.push( f );
                 rates.push('');
+                notes.push('');
+                tags.push([]);
                 fInfos.push( args.payload.fInfos[ myI ] );
                 opts.push( getOptsDef() );
                 myI++;
@@ -25,10 +29,12 @@ function vyArgsChk ( qestName = 'NaNo.O' ){
 
     let qest = {
         name: qestName,
-        files: files,
-        rates: rates,
-        fInfos: fInfos,
-        opts: opts,
+        files,
+        rates,
+        fInfos,
+        opts,
+        notes,
+        tags,
     }
     return qest;
 
@@ -97,11 +103,24 @@ function jsonToShs( j, cliType = 'sh' ){
         let fOut = `${dirname}/${fileNoExt}_fNo${f}${ext}`;
         
         let opt = q.opts[ f ];
+
+
+        if( q.notes[ f ] != '' ){
+            shs.push(`\n\n# file no: ${f} notes ----------------  START`);
+            shs.push(`# ${q.notes[ f ].replaceAll('\n','\n# ')}` );
+            shs.push(`# file no: ${f} notes --------------------- END`);
+        }
+        if( q.tags[ f ].length > 0 ){
+            shs.push(`# file no: ${f} tags ---------------------- START`);
+            shs.push(`#             * File source:  [ ${dirname}/${filename} ]`);
+            shs.push(`#             * At time:      ${Date()}`);
+            shs.push(`#\t2q:#`+q.tags[ f ].join('\t2q:#'));
+            shs.push(`# file no: ${f} tags ---------------------- END`);
+        }
+
         if( q.rates[ f ] == 'ok' ){
 
-            shs.push(`
-
-# file no: ${f} START
+            shs.push(`# file no: ${f} START
 
 touch './_Ready/${f}__status_00_START'
 
