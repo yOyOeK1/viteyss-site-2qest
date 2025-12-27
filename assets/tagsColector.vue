@@ -50,7 +50,7 @@ methods:{
     },
     getCountCharactersInTags(){
         let tr = 512;
-
+        if( this.tags == undefined ) return tr;
         for(let t of this.tags)
             tr-= t.length+2;
 

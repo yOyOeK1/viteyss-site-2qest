@@ -90,6 +90,7 @@ mounted(){
         //this.currentTime = vp.currentTime;
 
     let vh = document.getElementById('myVidPla');
+    if( vh == undefined ) return -1;
     vh.addEventListener('seeked',(e)=>{
         if(0)console.log('videoPlayer vh:',vh,
             '\ne:',e

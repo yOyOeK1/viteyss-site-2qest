@@ -11,7 +11,26 @@
         font-size: 80%;
         
     ">
-    2App | mStatus:({{ mStatus }})
+    2App | mStatus:({{ mStatus }}) |
+
+    <select v-model="appViewMode">
+        <option v-for="avm in appViewModes">
+            {{avm}}
+        </option>
+    
+    </select>
+
+    | 
+
+    [<a 
+        title="Show keyboard short cuts map"
+        @click="showKeymap = true">k</a>]
+
+    <div v-if="showKeymap">
+        <KeysMap 
+            @key-map-close="onEmit_hideKeyMap"/>
+    </div>
+    
 
 
 </div>
@@ -86,12 +105,11 @@
 </div>
 
 
-
-
 <div v-if="file!=-1" style="display: inline;">
     <TwoFileList 
         ref="tfl"
         :qestAs="file"
+        :viewMode="appViewMode"
     />
 
 
@@ -116,12 +134,14 @@ import {toRaw} from 'vue';
 import FilesList from './filesList.vue';
 import Splash from './splash.vue';
 import VyButtonContext from '@viteyss-site-settings1/UiAssets/vyButtonContext.vue';
+import KeysMap from './keysMap.vue';
 
 export default{
 components:{
     "TwoSplash": Splash,
     "TwoFileList": FilesList,
     "VYButtonContext": VyButtonContext,
+    "KeysMap": KeysMap
 },
 mounted(){
     setTimeout(()=>{
@@ -129,6 +149,7 @@ mounted(){
         let f = '';
         f = 'nst/2qest/251219tt_setOfTwo.js';
         f = 'nst/251226tt094859_2q_test1.js';
+        f = 'nst/2Qest/251226tt172406_as.2qest';
         this.test_loadFileOnStart( f );
 
     },1000);
@@ -143,7 +164,11 @@ data(){
     }
     return {
 
+        appViewMode: 'basic1',
+        appViewModes: ['basic1','PiP'],
+
         showMenuFile: false,
+        showKeymap: false,
 
         mStatus,
         file: qArg,
@@ -154,7 +179,16 @@ data(){
         inputCmd: ''
     };
 },
+watch:{
+    appViewMode(nv, ov){
+        console.log('twoApp view mode switch ['+nv+']');
+    }
+},
 methods:{
+
+    onEmit_hideKeyMap(){ this.showKeymap = false; },
+
+
     onSave( cbOnSave = undefined ){
         let q = JSON.cloneRaw( this.$refs.tfl.onGetQest() );
         console.log('q now : ',JSON.dumpNice( q ));

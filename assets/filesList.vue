@@ -18,6 +18,22 @@
 <!--
     Selection ({{ fSelect }}):
 -->
+
+
+<!--
+<div
+    id="vidPlayLanding">
+    <VideoPlayer
+        v-if="fSelect!=-1 && 'opts' in qest && qest.opts.length > fSelect"
+        id="vidPlay00"
+        :mySrc="`/@fs`+qest.files[ fSelect ]"
+        :currentTime="qest.opts[ fSelect ]['clipFrom']!=0?qest.opts[ fSelect ]['clipFrom']:qest.opts[ fSelect ]['currentTime']"
+        @two-qest-video-update="onEmit_videoUpdate"
+        >as single player</VideoPlayer>
+</div>
+
+-->
+
 <div
     v-for="fItem,fNo in qest.files"
     style="padding-bottom:10px;">
@@ -34,17 +50,23 @@
 
 
     <div v-if="fNo==fSelect"
-        style="background-color: #242e41; color:white; align-self: center;">
+        style="background-color: #242e41; color:white;">
         <!--
             :mySrc="`file://`+fItem"
             -->
+
+           
+            
             <VideoPlayer
+
+                ref="vidPlay00"
+
                 :mySrc="`/@fs`+fItem"
                 :currentTime="qest.opts[ fNo ]['clipFrom']!=0?qest.opts[ fNo ]['clipFrom']:qest.opts[ fNo ]['currentTime']"
                 @two-qest-video-update="onEmit_videoUpdate"
                 >abcx</VideoPlayer>
 
-        
+           
 
         <!--
             
@@ -58,7 +80,8 @@
         <button titel="clip from current position" @click="onStopForNotes( fNo,'from' )"><img src="@viteyss-site-2qest/assets/ico_brackFromW_16_16.png"></img></button>
         <button @mousedown.prevent="onStopForNotes( fNo, '--d' )" @mouseup.prevent="onStopForNotes( fNo, '--u' )"
             @touchdown.prevent="onStopForNotes( fNo, '--d' )" @touchup.prevent="onStopForNotes( fNo, '--u' )"
-            ><</button>
+            title="< seek frames"
+            ><i class="fa-solid fa-angle-left"></i></button>
         <button 
             v-if="isPlaing" 
             @click="onStopForNotes( fNo, 'stop' )">STOP</button>
@@ -67,7 +90,8 @@
             @click="onStopForNotes( fNo, 'play' )">PLAY</button>
         <button @mousedown.prevent="onStopForNotes( fNo, '++d' )" @mouseup.prevent="onStopForNotes( fNo, '++u' )"
             @touchdown.prevent="onStopForNotes( fNo, '++d' )" @touchup.prevent="onStopForNotes( fNo, '++u' )"
-            >></button>
+            title="> seek frames"
+            ><i class="fa-solid fa-angle-right"></i></button>
         <button  titel="clip to current position" @click="onStopForNotes( fNo,'to' )"><img src="@viteyss-site-2qest/assets/ico_brackToW_16_16.png"></img></button>
 
         {{ qest.opts[ fNo ]['currentTime']==-1?'0':msToDurationString(qest.opts[ fNo ]['currentTime'])}}
@@ -76,13 +100,26 @@
 
 
 
+        <hr></hr>
 
-        <div v-if="qest.opts[ fNo ]['clipTo']!=-1">
-            Clip: 
-            <a @click="onSeekTo(fNo,'from')">[ {{ msToDurationString( qest.opts[ fNo ]['clipFrom'] ) }} ]</a>
-            to 
-            <a @click="onSeekTo(fNo,'to')">[ {{ msToDurationString( qest.opts[ fNo ]['clipTo'] ) }} ]</a>
-            | <button @click="onStopForNotes( fNo,'clear' )">[x]</button>
+
+        <!-- TOOLS START -->
+
+
+        <div v-if="qest.opts[ fNo ]['clipTo']!=-1"
+            class="toolsRadio"
+            style="display: inline-block;"
+            title="Clip this video to">
+            <i class="fa-solid fa-scissors"></i>
+            [ <a @click="onSeekTo(fNo,'from')">{{ msToDurationString( qest.opts[ fNo ]['clipFrom'] ) }}</a> ]
+            - 
+            [ <a @click="onSeekTo(fNo,'to')">{{ msToDurationString( qest.opts[ fNo ]['clipTo'] ) }}</a> ]
+            <!--
+            <button @click="onStopForNotes( fNo,'clear' )" style="padding:3px;"
+                title="Clean clip selection">[x]</button>
+                -->
+            [<a @click="onStopForNotes( fNo,'clear' )" style="padding:3px;"
+                title="Clean clip selection">x</a>]
         </div>
         
 
@@ -92,22 +129,50 @@
         <label for="nextOptOutPou" style="display:inline;">out point</label>
         -->
 
-        <hr></hr>
-
+        |
         
-        <input type="checkbox" v-model="qest.opts[ fNo ]['stabilize']" 
-            id="nextOptStabilize" style="display:inline;"/>
-        <label for="nextOptStabilize" style="display:inline;">stabilize</label>
+        <div 
+            title="stabilize"
+            class="toolsRadio"
+            >
+            <input type="checkbox" v-model="qest.opts[ fNo ]['stabilize']" 
+                style="display: inline;"
+                id="nextOptStabilize"/>
+            <label for="nextOptStabilize"
+                style="display: inline;">
+                <img src="@viteyss-site-2qest/assets/ico_stabi_16_16.png"></img>
+            </label>
+        </div>
         |
-        <input type="checkbox" v-model="qest.opts[ fNo ]['rotMin']" 
-            id="nextOptRotMin" style="display:inline;"/>
-        <label for="nextOptRotMin" style="display:inline;">rot -90</label>
+        <div 
+             class="toolsRadio"
+             title="rot -90">
+            <input type="checkbox" v-model="qest.opts[ fNo ]['rotMin']" 
+                style="display: inline;"
+                id="nextOptRotMin"/>
+            <label for="nextOptRotMin"
+                style="display: inline;">
+                <i class="fa-solid fa-rotate-left"></i>
+            </label>
+        </div>
         |
-        <input type="checkbox" v-model="qest.opts[ fNo ]['rotPlu']" 
-            id="nextOptRotPlu" style="display:inline;"/>
-        <label for="nextOptRotPlu" style="display:inline;">rot +90</label>
+        <div title="rot +90"
+         class="toolsRadio">
+            <input type="checkbox" v-model="qest.opts[ fNo ]['rotPlu']" 
+                style="display: inline;"
+                id="nextOptRotPlu"/>
+            <label for="nextOptRotPlu"
+                style="display: inline;">
+                <i class="fa-solid fa-rotate-right"></i>
+            </label>
+        </div>
+
+
+        <!-- TOOLS END -->
+
+
        
-        <hr></hr>
+        
 
         
         <table style="width:95vw;">
@@ -142,10 +207,18 @@
         <label for="nextAfterRating" style="display:inline;">next</label>
         |
 
-        <button @click="onMakeCopyClip( fNo )">clone</button>
-        <button @click="onIsRate(fNo, 'ok')">OK</button>
-        <button @click="onIsRate(fNo, 'maby')">maby</button>
-        <button @click="onIsRate(fNo, 'no')">no</button>
+        <button
+            title="Clone current file" 
+            @click="onMakeCopyClip( fNo )"><i class="fa-regular fa-copy"></i></button>
+        <button 
+            title="OK use in 2qest"
+            @click="onIsRate(fNo, 'ok')"><i class="fa-regular fa-circle-check"></i></button>
+        <button
+            title="Maby use it" 
+            @click="onIsRate(fNo, 'maby')"><i class="fa-solid fa-circle-notch"></i></button>
+        <button 
+            title="No don't use it"
+            @click="onIsRate(fNo, 'no')"><i class="fa-regular fa-circle-xmark"></i></button>
         <button @click="onIsRate(fNo, 'delete')">delete</button>
 
 
@@ -165,7 +238,22 @@
 <br></br>
 <br></br>
 </template>
+<style>
 
+.toolsRadio{
+    border:solid white 2px;
+    background-color: rgb(73, 73, 19);
+    border-radius: 6px;
+    padding: 4px;
+    display: inline-block;
+}
+
+.toolsRadio label{
+    display: inline;
+}
+
+
+</style>
 <script>
 
 import { vyArgsChk } from '../libs/vyArgs';
@@ -180,7 +268,7 @@ import { toRaw } from 'vue';
 
 export default{
 
-props: [ 'qestAs' ],
+props: [ 'qestAs', 'viewMode' ],
 
 components:{
     "FFile": File,
@@ -191,6 +279,9 @@ mounted(){
     if( this.qest.files.length > 0 )
         this.fSelect = 0;
 
+    console.log('Files list mount key short cuts');
+    window.addEventListener('keydown', e => this.manageKeyShortCuts( 'down',e ) );
+    window.addEventListener('keyup', e => this.manageKeyShortCuts( 'up', e ) );
     
 },
 data(){
@@ -215,11 +306,183 @@ data(){
 
         isPlaing: false,
         vpSync: -1,
+
+        PiPNode: undefined,
         
     };
 
 },
+watch:{
+    viewMode(nv, ov){
+        console.log('filesList view mode switch ['+nv+']');
+        if( nv == 'PiP' ){
+            let windowFeatures = 'width=320,height=180,location=no,toolbar=no,menubar=no,scrollbars=no,resizable=yes';
+                    
+            if( this.PiPNode == undefined ){
+                console.log('filesList open');
+                let nw = window.open( '','', windowFeatures );
+                window['pipnw'] = nw;
+                nw.window.document.write('<html><body style="background-color:gray;"><div id="PiP"></div></body></html>');
+                // magic!
+                //this.PiPNode.document.body.appendChild( this.$refs.vidPlay00 );
+                let pipDiv = nw.window.document.getElementById('PiP');
+                let vpDiv = window.document.getElementById('vidPlay00');
+                vpDiv.onbeforeunload = (e='')=>{
+                    console.log('wtf');
+                    e.preventDefault();
+                    e.returnValue = ' one moment';
+                    this.moveVideoPlayerFromTo();
+                    nw.close();
+                };
+                //vpDiv.innerHTML = '';
+                pipDiv.appendChild( vpDiv );
+
+                this.PiPNode = nw;
+
+            }else{
+                console.log('filesList recycle');
+
+            }
+
+            /*
+
+            if( this.PiPNode == undefined ){
+                let openCustomWindow = ( url ) => {
+                    let windowName = '2Qest - PiP';
+                    let windowFeatures = 'width=500,height=400,location=no,toolbar=no,menubar=no,scrollbars=no,resizable=yes';
+                    let newWindow = window.open(url, windowName, windowFeatures);
+                    if (newWindow) {
+                        this.PiPNode = newWindow;
+                        window['pipnode'] = newWindow;
+                        newWindow.focus();
+                    } else {
+                        alert('Popup blocked! Please enable popups for this site.');
+                    }
+
+                    return false; // Prevent the default link action if used in an anchor tag
+                }
+                openCustomWindow(`http://${window.location.host}/yss/index.html#pageByName=2%20Qest`);
+
+            }else{
+                this.PiPNode.focus();
+            }
+                */
+
+        }else{
+
+           this.moveVideoPlayerFromTo();
+
+
+            /*
+            if( this.PiPNode != undefined ){
+                this.PiPNode.close();
+                this.PiPNode = undefined;
+            }
+                */
+
+        }
+
+    }
+},
 methods:{
+
+    manageKeyShortCuts( eventWay, e ){
+        console.log( 'got key ',e, ' keycode: ',e.keyCode );
+        let focusOn = document.activeElement;
+        console.log('focuse on ['+focusOn.tagName+']');
+        let setPrevent = false;
+
+        if( ['DIV','VIDEO' ].indexOf( focusOn.tagName ) != -1 ){
+            if( e.keyCode == 32){// space
+                if( eventWay == 'down' ){
+                    //console.log('space ! down ');
+                    if( !this.isPlaing ) this.onStopForNotes( this.fSelect, 'play' );
+                    else this.onStopForNotes( this.fSelect, 'stop' );
+                }
+                setPrevent = true;
+
+            } else  if( e.keyCode == 49 && eventWay == 'down' ){ // 1 stabi
+                this.qest.opts[ this.fSelect ]['stabilize'] = ! this.qest.opts[ this.fSelect ]['stabilize'];
+
+            } else  if( e.keyCode == 50 && eventWay == 'down'){ // 2 rot left
+                this.qest.opts[ this.fSelect ]['rotMin'] = !this.qest.opts[ this.fSelect ]['rotMin'];
+
+            } else  if( e.keyCode == 51 && eventWay == 'down'){ // 3 rot right
+                this.qest.opts[ this.fSelect ]['rotPlu'] = !this.qest.opts[ this.fSelect ]['rotPlu'];
+            
+
+            } else if( e.altKey ){
+                if( eventWay == 'up' && (e.keyCode == 65 || e.code == 'ArrowLeft') ){ 
+                // clip left
+                    this.onStopForNotes( this.fSelect, 'from' );
+                
+                } else if( eventWay == 'up' && (e.keyCode == 85 || e.code == 'ArrowRight') ){ 
+                    // clip right
+                    this.onStopForNotes( this.fSelect, 'to' );
+                }
+                setPrevent = true;
+
+            } else if( e.ctrlKey ){
+                if( eventWay == 'up' && (e.keyCode == 65 || e.code == 'ArrowLeft') ){ 
+                    // seek to clip left
+                    this.onSeekTo(this.fSelect,'from');
+                    
+                } else if( eventWay == 'up' && (e.keyCode == 85 || e.code == 'ArrowRight') ){ 
+                    // seek to clip right
+                    this.onSeekTo(this.fSelect, 'to');
+                }
+                setPrevent = true;
+
+            } else if( e.keyCode == 65 || e.code == 'ArrowLeft' ){ // seek left
+
+                if( e.shiftKey && eventWay == 'down' ){
+                    this.onSeek( 0.00 );
+                }else{
+                    if( eventWay == 'down' )
+                        this.onStopForNotes( this.fSelect, '--d' );
+                    if( eventWay == 'up' )
+                        this.onStopForNotes( this.fSelect, '--u' );
+                }
+
+                setPrevent = true;
+
+            } else if( e.keyCode == 85 || e.code == 'ArrowRight' ){ // seek right
+
+                if( e.shiftKey && eventWay == 'down' ){
+                    this.onSeek( -1 );
+                }else{
+                    if( eventWay == 'down' )
+                        this.onStopForNotes( this.fSelect, '++d' );
+                    if( eventWay == 'up' )
+                        this.onStopForNotes( this.fSelect, '++u' );
+                }
+
+                setPrevent = true;
+
+            }
+
+        }
+
+        if( setPrevent ){
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+    },
+
+
+    moveVideoPlayerFromTo(){
+         if( this.PiPNode != undefined ){
+            let vpDiv = this.PiPNode.window.document.getElementById('vidPlay00');
+            let vpLandDiv = window.document.getElementById('vidPlayLanding');
+            vpLandDiv.appendChild( vpDiv );
+
+            this.PiPNode.close();
+            this.PiPNode = undefined;
+        }
+    },
+
+
     onCanDoNewQery( query = '' ){
         console.log( 'can do new ?', {fSelect:this.fSelect,qest:this.qest} );
         if( this.fSelect != -1 ){
@@ -247,14 +510,16 @@ methods:{
         
         // to update old files to current structure START
         if( !('notes' in this.qest) ){
-            let n = new Array( this.qest.files.length );
-            n.forEach( i => i = '' );
+            let n = [];
+            for(let i=0;i<this.qest.files.length; i++)
+                n.push('');
             this.qest['notes'] = n
         }
 
         if( !('tags' in this.qest) ){
-            let t = new Array( this.qest.files.length );
-            t.forEach( i => i = [] );
+            let t = [];
+            for(let i=0;i<this.qest.files.length; i++)
+                t.push([]);
             this.qest['tags'] = t
         }
         // to update old files to current structure END
@@ -290,6 +555,7 @@ methods:{
         this.qest.tags[ this.fSelect ].splice( parseInt( index ), 1 );
     },
     onEmit_tagsAdd( event){
+        console.log('tagsadd ',{ qest:this.qest, fSelect: this.fSelect });
         this.qest.tags[ this.fSelect ].push( `${event}` );
     },
 
@@ -300,8 +566,12 @@ methods:{
 
     onEmit_videoUpdate( msg  ){
         console.log('video update root',msg);
-        let vp = document.getElementById('myVidPla');
-        if( !vp ) return -1;
+        let vp = this.getCurrentVideoPlayer();
+        if( vp == undefined ){
+            console.log('EE can\'t get player node ');
+            return -1;
+        }
+
 
         if( msg.action == 'seek' )
             this.qest.opts[ this.fSelect ]['currentTime'] = msg.payload;
@@ -326,6 +596,22 @@ methods:{
         
     },
 
+
+    getCurrentVideoPlayer(){
+        let vp = undefined;
+        if( this.viewMode == 'PiP' ){
+            vp = this.PiPNode.window.document.getElementById('myVidPla');
+        }else{
+            vp = document.getElementById('myVidPla');
+        }
+        if( vp == undefined ){
+            console.log('EE can\'t get player node ');
+        }
+        return vp;
+
+    },
+
+
     onIsRate(fItem, rate){
         this.qest.rates[ fItem ]= rate;
         if( this.qest.files.length >= this.fSelect-1 && this.goToNext ){
@@ -335,13 +621,23 @@ methods:{
 
     },
 
-    onSeekTo( fNo, isWhat ){
-        let vp = document.getElementById('myVidPla');
+    onSeek( secPos = 0.00){
+        let vp = this.getCurrentVideoPlayer();
+        if( vp == undefined ){
+            console.log('EE can\'t get player node ');
+            return -1;
+        }
+        if( secPos == -1 ) secPos = vp.duration;
 
-        if( isWhat == 'from' )
-            vp.currentTime = this.qest.opts[ this.fSelect ]['clipFrom'];
+        vp.currentTime = secPos;
+
+    },
+
+    onSeekTo( fNo, isWhat ){
+       if( isWhat == 'from' )
+            this.onSeek( parseFloat( this.qest.opts[ this.fSelect ]['clipFrom'] ) );
         else
-            vp.currentTime = this.qest.opts[ this.fSelect ]['clipTo'];
+            this.onSeek( parseFloat( this.qest.opts[ this.fSelect ]['clipTo'] ) );
 
     },
 
@@ -353,8 +649,13 @@ methods:{
             this.qest.opts[ this.fSelect ]['clipTo'] = -1;
             return 1;
         }
-        let vp = document.getElementById('myVidPla');        
-        
+
+        let vp = this.getCurrentVideoPlayer();
+        if( vp == undefined ){
+            console.log('EE can\'t get player node ');
+            return -1;
+        }
+
 
         if( action == '--u' || action == '++u' ){
             clearInterval( this.longPress );
