@@ -38,6 +38,7 @@
     v-for="fItem,fNo in qest.files"
     style="padding-bottom:0px; display:block;">
 
+    <section :id="`fileSection`+fNo"></section>
     <div class="smallBt"
         :style="(fNo==fSelect?'background-color: rgb(189, 203, 230);':'')">
         <table>
@@ -67,7 +68,7 @@
                         :fNo="fNo"
                         :fSelect="fSelect"
                         :myColor="colorOfFileNow( fNo )"
-                        @file-select-update="console.log('67890');onEmit_fileSelectUpdate( $event )"
+                        @file-select-update="onEmit_fileSelectUpdate( $event )"
                         />
             
                 </td>            
@@ -346,6 +347,7 @@ data(){
 
 },
 watch:{
+   
     viewMode(nv, ov){
         console.log('filesList view mode switch ['+nv+']');
         if( nv == 'PiP' ){
@@ -421,17 +423,15 @@ methods:{
 
     colorOfFileNow( fNo ){
         let tr = '';
-        if( fNo == this.fSelect ) tr = 'rgb(172, 192, 198)';
-        else {
+        
+        //console.log('rates ',{ fNo, 'value':this.qest.rates[ fNo ] });
+        if( this.qest.rates[ fNo ] == 'ok' ) tr = '#adff4b';
+        else if( this.qest.rates[ fNo ] == 'maby' ) tr = 'rgb(216, 255, 176)';
+        else if( this.qest.rates[ fNo ] == 'no' ) tr = 'rgb(236, 144, 144)';
+        else if( this.qest.rates[ fNo ] == 'delete' ) tr = 'rgb(255, 69, 150)';
+        
+        if( tr == '' ) tr = 'rgb(172, 192, 198)';
 
-            console.log('rates ',{ fNo, 'value':this.qest.rates[ fNo ] });
-            if( this.qest.rates[ fNo ] == 'ok' ) tr = '#adff4b';
-            else if( this.qest.rates[ fNo ] == 'maby' ) tr = 'rgb(216, 255, 176)';
-            else if( this.qest.rates[ fNo ] == 'no' ) tr = 'rgb(236, 144, 144)';
-            else if( this.qest.rates[ fNo ] == 'delete' ) tr = 'rgb(255, 69, 150)';
-
-
-        }
 
         return tr;
     },
@@ -637,7 +637,21 @@ methods:{
 
     onEmit_fileSelectUpdate( event ){
         this.fSelect = event;
+        // only to make scroll to selected
+        this.onEmit_scrollToFSelection();  
 
+    },
+
+    onEmit_scrollToFSelection(){
+        setTimeout(()=>{
+            let fNo = this.fSelect;
+            let sectionNode = document.getElementById('fileSection'+fNo );
+            console.log('fSelected now is ',fNo, ' .... scroll to it ....node:',sectionNode);
+            window.scrollTo({
+                top: sectionNode.offsetTop,
+                behavior: 'smooth'
+            });
+        },100);
     },
 
     onEmit_videoUpdate( msg  ){
