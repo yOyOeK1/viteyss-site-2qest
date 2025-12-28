@@ -9,11 +9,13 @@
 
         <video 
             :autoplay="isAutoplay" 
-            width="100%" height="220"
             controls
             ref="myVidPla"
             id="myVidPla"
-            style="background-color: black;padding:10px;"
+            style="background-color: black;padding:0px;
+                width:100%;
+                max-height: 70vh;
+                "
             >
             <source :src="getNiceSrc" type="video/mp4">
             

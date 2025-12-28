@@ -36,194 +36,222 @@
 
 <div
     v-for="fItem,fNo in qest.files"
-    style="padding-bottom:10px;">
+    style="padding-bottom:0px; display:block;">
 
-    
-    [{{ fNo }}] <FFile   
-        style="display: inline;"   
-        v-if="1"   
-        :qest="qest"
-        :fNo="fNo"
-        :fSelect="fSelect"
-        @file-select-update="console.log('67890');onEmit_fileSelectUpdate( $event )"
-        />
-
-
-    <div v-if="fNo==fSelect"
-        style="background-color: #242e41; color:white;">
-        <!--
-            :mySrc="`file://`+fItem"
-            -->
-
-           
-            
-            <VideoPlayer
-
-                ref="vidPlay00"
-
-                :mySrc="`/@fs`+fItem"
-                :currentTime="qest.opts[ fNo ]['clipFrom']!=0?qest.opts[ fNo ]['clipFrom']:qest.opts[ fNo ]['currentTime']"
-                @two-qest-video-update="onEmit_videoUpdate"
-                >abcx</VideoPlayer>
-
-           
-
-        <!--
-            
-        <input type="checkbox" v-model="qest.opts[ fNo ]['inPoint']" 
-            id="nextOptInPoi" style="display:inline;"/>
-        <label for="nextOptInPoi" style="display:inline;">in point</label>
-        -->
-
-
-        
-        <button titel="clip from current position" @click="onStopForNotes( fNo,'from' )"><img src="@viteyss-site-2qest/assets/ico_brackFromW_16_16.png"></img></button>
-        <button @mousedown.prevent="onStopForNotes( fNo, '--d' )" @mouseup.prevent="onStopForNotes( fNo, '--u' )"
-            @touchdown.prevent="onStopForNotes( fNo, '--d' )" @touchup.prevent="onStopForNotes( fNo, '--u' )"
-            title="< seek frames"
-            ><i class="fa-solid fa-angle-left"></i></button>
-        <button 
-            v-if="isPlaing" 
-            @click="onStopForNotes( fNo, 'stop' )">STOP</button>
-        <button
-            v-else 
-            @click="onStopForNotes( fNo, 'play' )">PLAY</button>
-        <button @mousedown.prevent="onStopForNotes( fNo, '++d' )" @mouseup.prevent="onStopForNotes( fNo, '++u' )"
-            @touchdown.prevent="onStopForNotes( fNo, '++d' )" @touchup.prevent="onStopForNotes( fNo, '++u' )"
-            title="> seek frames"
-            ><i class="fa-solid fa-angle-right"></i></button>
-        <button  titel="clip to current position" @click="onStopForNotes( fNo,'to' )"><img src="@viteyss-site-2qest/assets/ico_brackToW_16_16.png"></img></button>
-
-        {{ qest.opts[ fNo ]['currentTime']==-1?'0':msToDurationString(qest.opts[ fNo ]['currentTime'])}}
-         / 
-        {{ qest.opts[ fNo ]['duration']==-1?'0':msToDurationString(qest.opts[ fNo ]['duration'])}}
-
-
-
-        <hr></hr>
-
-
-        <!-- TOOLS START -->
-
-
-        <div v-if="qest.opts[ fNo ]['clipTo']!=-1"
-            class="toolsRadio"
-            style="display: inline-block;"
-            title="Clip this video to">
-            <i class="fa-solid fa-scissors"></i>
-            [ <a @click="onSeekTo(fNo,'from')">{{ msToDurationString( qest.opts[ fNo ]['clipFrom'] ) }}</a> ]
-            - 
-            [ <a @click="onSeekTo(fNo,'to')">{{ msToDurationString( qest.opts[ fNo ]['clipTo'] ) }}</a> ]
-            <!--
-            <button @click="onStopForNotes( fNo,'clear' )" style="padding:3px;"
-                title="Clean clip selection">[x]</button>
-                -->
-            [<a @click="onStopForNotes( fNo,'clear' )" style="padding:3px;"
-                title="Clean clip selection">x</a>]
-        </div>
-        
-
-        <!--
-        <input type="checkbox" v-model="qest.opts[ fNo ]['outPoint']" 
-            id="nextOptOutPou" style="display:inline;"/>
-        <label for="nextOptOutPou" style="display:inline;">out point</label>
-        -->
-
-        |
-        
-        <div 
-            title="stabilize"
-            class="toolsRadio"
-            >
-            <input type="checkbox" v-model="qest.opts[ fNo ]['stabilize']" 
-                style="display: inline;"
-                id="nextOptStabilize"/>
-            <label for="nextOptStabilize"
-                style="display: inline;">
-                <img src="@viteyss-site-2qest/assets/ico_stabi_16_16.png"></img>
-            </label>
-        </div>
-        |
-        <div 
-             class="toolsRadio"
-             title="rot -90">
-            <input type="checkbox" v-model="qest.opts[ fNo ]['rotMin']" 
-                style="display: inline;"
-                id="nextOptRotMin"/>
-            <label for="nextOptRotMin"
-                style="display: inline;">
-                <i class="fa-solid fa-rotate-left"></i>
-            </label>
-        </div>
-        |
-        <div title="rot +90"
-         class="toolsRadio">
-            <input type="checkbox" v-model="qest.opts[ fNo ]['rotPlu']" 
-                style="display: inline;"
-                id="nextOptRotPlu"/>
-            <label for="nextOptRotPlu"
-                style="display: inline;">
-                <i class="fa-solid fa-rotate-right"></i>
-            </label>
-        </div>
-
-
-        <!-- TOOLS END -->
-
-
-       
-        
-
-        
-        <table style="width:95vw;">
+    <div class="smallBt"
+        :style="(fNo==fSelect?'background-color: rgb(189, 203, 230);':'')">
+        <table>
             <tr>
-                <td style="vertical-align: top;">
-                    <textarea
-                        rows="3"
-                        placeholder="Notes to it"
-                        style="width:100%;"
-                        v-model="qest.notes[ fNo ]"
-                            />
+                <td>
+                    [{{ fNo }}] 
 
-                </td>
-                <td style="vertical-align: top; max-width: 160px;">
-                    <TagsColector
-                        :tags="qest.tags[ fNo ]"
-                        @tags-colector-add="onEmit_tagsAdd"
-                        @tags-colector-remove-index="onEmit_tagRemove"
+                </td><td>
+
+                    <button @click="onMoveFile(fNo, 'up')"
+                            :disabled="fNo == 0"
+                            title="Move this file up in list"><i class="fa-solid fa-sort-up"></i>
+                    </button>
+
+                </td><td>
+
+                    <button @click="onMoveFile(fNo, 'down')"
+                            :disabled="fNo == (qest.files.length-1)"
+                            title="Move this file up in list"><i class="fa-solid fa-sort-down"></i>
+                    </button>
+
+                </td><td>
+
+                    <FFile   
+                        v-if="1"   
+                        :qest="qest"
+                        :fNo="fNo"
+                        :fSelect="fSelect"
+                        :myColor="colorOfFileNow( fNo )"
+                        @file-select-update="console.log('67890');onEmit_fileSelectUpdate( $event )"
                         />
-                
-
-                </td>
+            
+                </td>            
             </tr>
         </table>
-
+        
     
-        <hr></hr>
 
 
-        <input type="checkbox" v-model="goToNext" 
-            id="nextAfterRating" style="display:inline;"/>
-        <label for="nextAfterRating" style="display:inline;">next</label>
-        |
+        <div v-if="fNo==fSelect"
+            style="background-color: #242e41; color:white;">
+            <!--
+                :mySrc="`file://`+fItem"
+                -->
 
-        <button
-            title="Clone current file" 
-            @click="onMakeCopyClip( fNo )"><i class="fa-regular fa-copy"></i></button>
-        <button 
-            title="OK use in 2qest"
-            @click="onIsRate(fNo, 'ok')"><i class="fa-regular fa-circle-check"></i></button>
-        <button
-            title="Maby use it" 
-            @click="onIsRate(fNo, 'maby')"><i class="fa-solid fa-circle-notch"></i></button>
-        <button 
-            title="No don't use it"
-            @click="onIsRate(fNo, 'no')"><i class="fa-regular fa-circle-xmark"></i></button>
-        <button @click="onIsRate(fNo, 'delete')">delete</button>
+            
+                
+                <VideoPlayer
+                    ref="vidPlay00"
+                    :mySrc="`/@fs`+fItem"
+                    :currentTime="qest.opts[ fNo ]['clipFrom']!=0?qest.opts[ fNo ]['clipFrom']:qest.opts[ fNo ]['currentTime']"
+                    @two-qest-video-update="onEmit_videoUpdate"
+                    >abcx</VideoPlayer>
+
+            
+
+            <!--
+                
+            <input type="checkbox" v-model="qest.opts[ fNo ]['inPoint']" 
+                id="nextOptInPoi" style="display:inline;"/>
+            <label for="nextOptInPoi" style="display:inline;">in point</label>
+            -->
 
 
+            
+            <button titel="clip from current position" @click="onStopForNotes( fNo,'from' )"><img src="@viteyss-site-2qest/assets/ico_brackFromW_16_16.png"></img></button>
+            <button @mousedown.prevent="onStopForNotes( fNo, '--d' )" @mouseup.prevent="onStopForNotes( fNo, '--u' )"
+                @touchdown.prevent="onStopForNotes( fNo, '--d' )" @touchup.prevent="onStopForNotes( fNo, '--u' )"
+                title="< seek frames"
+                ><i class="fa-solid fa-angle-left"></i></button>
+            <button 
+                v-if="isPlaing" 
+                @click="onStopForNotes( fNo, 'stop' )">STOP</button>
+            <button
+                v-else 
+                @click="onStopForNotes( fNo, 'play' )">PLAY</button>
+            <button @mousedown.prevent="onStopForNotes( fNo, '++d' )" @mouseup.prevent="onStopForNotes( fNo, '++u' )"
+                @touchdown.prevent="onStopForNotes( fNo, '++d' )" @touchup.prevent="onStopForNotes( fNo, '++u' )"
+                title="> seek frames"
+                ><i class="fa-solid fa-angle-right"></i></button>
+            <button  titel="clip to current position" @click="onStopForNotes( fNo,'to' )"><img src="@viteyss-site-2qest/assets/ico_brackToW_16_16.png"></img></button>
+
+            {{ qest.opts[ fNo ]['currentTime']==-1?'0':msToDurationString(qest.opts[ fNo ]['currentTime'])}}
+            / 
+            {{ qest.opts[ fNo ]['duration']==-1?'0':msToDurationString(qest.opts[ fNo ]['duration'])}}
+
+
+
+            <hr></hr>
+
+
+            <!-- TOOLS START -->
+
+
+            <div v-if="qest.opts[ fNo ]['clipTo']!=-1"
+                class="toolsRadio"
+                style="display: inline-block;"
+                title="Clip this video to">
+                <i class="fa-solid fa-scissors"></i>
+                [ <a @click="onSeekTo(fNo,'from')">{{ msToDurationString( qest.opts[ fNo ]['clipFrom'] ) }}</a> ]
+                - 
+                [ <a @click="onSeekTo(fNo,'to')">{{ msToDurationString( qest.opts[ fNo ]['clipTo'] ) }}</a> ]
+                <!--
+                <button @click="onStopForNotes( fNo,'clear' )" style="padding:3px;"
+                    title="Clean clip selection">[x]</button>
+                    -->
+                [<a @click="onStopForNotes( fNo,'clear' )" style="padding:3px;"
+                    title="Clean clip selection">x</a>]
+            </div>
+            
+
+            <!--
+            <input type="checkbox" v-model="qest.opts[ fNo ]['outPoint']" 
+                id="nextOptOutPou" style="display:inline;"/>
+            <label for="nextOptOutPou" style="display:inline;">out point</label>
+            -->
+
+            |
+            
+            <div 
+                title="stabilize"
+                class="toolsRadio"
+                >
+                <input type="checkbox" v-model="qest.opts[ fNo ]['stabilize']" 
+                    style="display: inline;"
+                    id="nextOptStabilize"/>
+                <label for="nextOptStabilize"
+                    style="display: inline;">
+                    <img src="@viteyss-site-2qest/assets/ico_stabi_16_16.png"></img>
+                </label>
+            </div>
+            |
+            <div 
+                class="toolsRadio"
+                title="rot -90">
+                <input type="checkbox" v-model="qest.opts[ fNo ]['rotMin']" 
+                    style="display: inline;"
+                    id="nextOptRotMin"/>
+                <label for="nextOptRotMin"
+                    style="display: inline;">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </label>
+            </div>
+            |
+            <div title="rot +90"
+            class="toolsRadio">
+                <input type="checkbox" v-model="qest.opts[ fNo ]['rotPlu']" 
+                    style="display: inline;"
+                    id="nextOptRotPlu"/>
+                <label for="nextOptRotPlu"
+                    style="display: inline;">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </label>
+            </div>
+
+
+            <!-- TOOLS END -->
+
+
+        
+            
+
+            
+            <table style="width:95vw;">
+                <tr>
+                    <td style="vertical-align: top;">
+                        <textarea
+                            rows="3"
+                            placeholder="Notes to it"
+                            style="width:100%;"
+                            v-model="qest.notes[ fNo ]"
+                                />
+
+                    </td>
+                    <td style="vertical-align: top; max-width: 160px;">
+                        <TagsColector
+                            :tags="qest.tags[ fNo ]"
+                            @tags-colector-add="onEmit_tagsAdd"
+                            @tags-colector-remove-index="onEmit_tagRemove"
+                            />
+                    
+
+                    </td>
+                </tr>
+            </table>
+
+        
+            <hr></hr>
+
+
+            <input type="checkbox" v-model="goToNext" 
+                id="nextAfterRating" style="display:inline;"/>
+            <label for="nextAfterRating" style="display:inline;">next</label>
+            |
+
+            <button
+                title="Clone current file" 
+                @click="onMakeCopyClip( fNo )"><i class="fa-regular fa-copy"></i></button>
+            <button 
+                title="OK use in 2qest"
+                @click="onIsRate(fNo, 'ok')"><i class="fa-regular fa-circle-check"></i></button>
+            <button
+                title="Maby use it" 
+                @click="onIsRate(fNo, 'maby')"><i class="fa-solid fa-circle-notch"></i></button>
+            <button 
+                title="No don't use it"
+                @click="onIsRate(fNo, 'no')"><i class="fa-regular fa-circle-xmark"></i></button>
+            <button @click="onIsRate(fNo, 'delete')">delete</button>
+
+
+        </div>
+
+        
     </div>
-
    
     
     
@@ -239,6 +267,11 @@
 <br></br>
 </template>
 <style>
+
+.smallBt button{
+    padding:7px;
+    margin-right: 4px;
+}
 
 .toolsRadio{
     border:solid rgb(123, 123, 123) 1px;
@@ -385,6 +418,49 @@ watch:{
     }
 },
 methods:{
+
+    colorOfFileNow( fNo ){
+        let tr = '';
+        if( fNo == this.fSelect ) tr = 'rgb(172, 192, 198)';
+        else {
+
+            console.log('rates ',{ fNo, 'value':this.qest.rates[ fNo ] });
+            if( this.qest.rates[ fNo ] == 'ok' ) tr = '#adff4b';
+            else if( this.qest.rates[ fNo ] == 'maby' ) tr = 'rgb(216, 255, 176)';
+            else if( this.qest.rates[ fNo ] == 'no' ) tr = 'rgb(236, 144, 144)';
+            else if( this.qest.rates[ fNo ] == 'delete' ) tr = 'rgb(255, 69, 150)';
+
+
+        }
+
+        return tr;
+    },
+
+
+    onMoveFile( fNo, moveDirection = 'up' ){
+        if( fNo == 0 && moveDirection == 'up' ) return -1;
+        else if( (fNo+1) >= this.qest.files.length && moveDirection == 'down' ) return -1;
+
+        function swapPlaces( myArray, inInd, targInd ){
+            let t = myArray[ inInd ];
+            myArray[ inInd ] = myArray[ targInd ];
+            myArray[ targInd ] = t;
+        }
+
+        let targInd = fNo + ( moveDirection=='up' ? -1 : 1 );
+        
+        console.log('swap ', moveDirection);
+        
+        swapPlaces( this.qest.files, fNo, targInd);
+        swapPlaces( this.qest.rates, fNo, targInd);
+        swapPlaces( this.qest.fInfos, fNo, targInd);
+        swapPlaces( this.qest.opts, fNo, targInd);
+        swapPlaces( this.qest.notes, fNo, targInd);
+        swapPlaces( this.qest.tags, fNo, targInd);
+        
+        this.fSelect = ( moveDirection=='up' ? -1 : 1 ) + this.fSelect;
+
+    },
 
     manageKeyShortCuts( eventWay, e ){
         let focusOn = document.activeElement;

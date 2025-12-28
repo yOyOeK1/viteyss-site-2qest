@@ -4,20 +4,51 @@
 
 <div
     v-if="fSelect!=-1 && 'stabilize' in qest.opts[ fNo ]"
-    :style=" fNo==fSelect?`background-color:#cdcdcd;`:'' +
-        `border-bottom:solid gray 1px;`"
+    :style="
+        ( myColor ?
+        `background-color:${myColor};`:
+        '')+
+        `border:solid gray 1px;border-radius:6px;
+        `
+        "
     @click="$emit('file-select-update',fNo);"
     :title="qest.files[ fNo ]"
     >
-    <b>
-        {{ qest.rates[ fNo ]!=''?qest.rates[ fNo ]+' | ':'' }}
-    </b><small>
-        {{ qest.opts[ fNo ].stabilize?'S':' ' }}
-        {{ qest.opts[ fNo ].rotPlu?'R':' ' }}
-        {{ qest.opts[ fNo ].rotMin?'L':' ' }}
-        {{ getClipNiceStr() }}
-    </small> 
-    <b>{{ getName() }}</b> 
+    <table>
+        <tr>
+            <td>
+                <VYButtonContext
+                    title="File info"
+                    icon="<i class='fa-solid fa-file-import'></i>"
+                    :name="'file'+getName()"
+                    v-model:is-showing="showFileInfo"
+                    style="color:white;"
+                    >
+                    <small v-html="dofInfo()" />
+                </VYButtonContext>
+            
+            </td>
+            <td>
+
+                <b>
+                    {{ qest.rates[ fNo ]!=''?qest.rates[ fNo ]+' | ':'' }}
+                </b><small>
+                    {{ qest.opts[ fNo ].stabilize?'S':' ' }}
+                    {{ qest.opts[ fNo ].rotPlu?'R':' ' }}
+                    {{ qest.opts[ fNo ].rotMin?'L':' ' }}
+                    {{ getClipNiceStr() }}
+                </small> 
+                <br></br>
+                <b>{{ getName() }}</b> 
+
+
+            </td>
+        </tr>
+    </table>
+    
+
+
+    
     
     
     <!--
@@ -25,15 +56,7 @@
         {{ item }}
     -->
 
-    <VYButtonContext
-        title="File info"
-        icon="<i class='fa-solid fa-file-import'></i>"
-        :name="'file'+getName()"
-        v-model:is-showing="showFileInfo"
-        style="color:white;"
-        >
-        <small v-html="dofInfo()" />
-    </VYButtonContext>
+    
 </div>
 
 
@@ -56,6 +79,7 @@ export default{
         'qest':{ type: Object, default: {}} ,
         'fNo':{ type: Number, default: -1}, 
         'fSelect':-1, 
+        'myColor': '',
     },
     data(){ 
         return { 

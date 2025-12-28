@@ -149,7 +149,7 @@ mounted(){
         let f = '';
         f = 'nst/2qest/251219tt_setOfTwo.js';
         f = 'nst/251226tt094859_2q_test1.js';
-        f = 'nst/2Qest/251226tt172406_as.2qest';
+        f = 'nst/2Qest/251228tt093334.2qest';
         this.test_loadFileOnStart( f );
 
     },1000);
