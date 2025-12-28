@@ -241,8 +241,8 @@
 <style>
 
 .toolsRadio{
-    border:solid white 2px;
-    background-color: rgb(73, 73, 19);
+    border:solid rgb(123, 123, 123) 1px;
+    background-color: rgb(41, 41, 17);
     border-radius: 6px;
     padding: 4px;
     display: inline-block;
@@ -387,9 +387,8 @@ watch:{
 methods:{
 
     manageKeyShortCuts( eventWay, e ){
-        console.log( 'got key ',e, ' keycode: ',e.keyCode );
         let focusOn = document.activeElement;
-        console.log('focuse on ['+focusOn.tagName+']');
+        console.log( 'got key ',e, ' keycode: ',e.keyCode,' alt:'+e.altKey+' ctr:'+e.ctrlKey+' focuse on ['+focusOn.tagName+']');
         let setPrevent = false;
 
         if( ['DIV','VIDEO' ].indexOf( focusOn.tagName ) != -1 ){
@@ -426,12 +425,13 @@ methods:{
                 if( eventWay == 'up' && (e.keyCode == 65 || e.code == 'ArrowLeft') ){ 
                     // seek to clip left
                     this.onSeekTo(this.fSelect,'from');
+                    setPrevent = true;
                     
                 } else if( eventWay == 'up' && (e.keyCode == 85 || e.code == 'ArrowRight') ){ 
                     // seek to clip right
                     this.onSeekTo(this.fSelect, 'to');
+                    setPrevent = true;
                 }
-                setPrevent = true;
 
             } else if( e.keyCode == 65 || e.code == 'ArrowLeft' ){ // seek left
 
