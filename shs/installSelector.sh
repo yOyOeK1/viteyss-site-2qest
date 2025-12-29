@@ -1,14 +1,18 @@
 #!/bin/bash
 
+
+echo "- installing it as a script for nautilus"
 echo "my pwd[$(pwd)]"
 
 
-nautScr="$HOME""/.local/share/nautilus/scripts"
+
 twoQuestHOME="/home/yoyo/Apps/viteyss-site-2qest"
 menuItem="2questInst"
 
+nautScr="$HOME""/.local/share/nautilus/scripts"
 
-echo "- installing it as a script for nautilus"
+
+
 
 if test -d "$nautScr"; then
     echo "* nautilus directory / scripts OK"
