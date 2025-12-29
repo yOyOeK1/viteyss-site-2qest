@@ -5,11 +5,23 @@ echo "- installing it as a script for nautilus"
 echo "my pwd[$(pwd)]"
 
 
-
-twoQuestHOME="/home/yoyo/Apps/viteyss-site-2qest"
-menuItem="2questInst"
-
+#twoQestHOME="/home/yoyo/Apps/viteyss-site-2qest"
+twoQestHOME="$npm_config_local_prefix"
+viteyssHOME="$twoQestHOME""/../viteyss"
+menuItem="2qestInst_""$npm_package_version"
 nautScr="$HOME""/.local/share/nautilus/scripts"
+
+
+echo "viteyss   [$viteyssHOME]"
+echo "2qest     [$twoQestHOME]"
+sleep 1
+
+
+echo "* setting up selecterStep1 ...."
+sed 's:twoQestHOME="":twoQestHOME="'"$viteyssHOME"'":g' "./shs/selectorStep_org.sh" > "./shs/selectorStep1.sh"
+echo "  - chmod it "
+chmod +x "./shs/selectorStep1.sh"
+
 
 
 
@@ -19,38 +31,37 @@ if test -d "$nautScr"; then
 
 
     if test -e "$nautScr""/""$menuItem" ; then
-        echo "  link OK"
+        echo "  - link OK   ["$nautScr""/""$menuItem"]"
     else
-        echo "  making link for contextmenu [$menuItem]"
-        ln -s "$twoQuestHOME""/shs/selectorStep1.sh" "$nautScr""/""$menuItem"
+        echo "  - making link for contextmenu   [$menuItem]"
+        ln -s "$twoQestHOME""/shs/selectorStep1.sh" "$nautScr""/""$menuItem"
     fi
 
-
-
 else
-    echo "* nautilus directory / scripts not pressent. [$nautScr]"
+    echo "* nautilus directory / scripts not pressent.  [$nautScr]"
 
 fi
 
 
-fTarget="$HOME""/.local/share/applications""/twoquest.desktop"
-echo "- installing it as a app twoquest.desktop"
-if test -e "$fTarget"; then
-    echo "* [$fTarget] is OK"
-else    
 
+fTarget="$HOME""/.local/share/applications/""$menuItem"".desktop"
+echo "* installing it as a app $menuItem.desktop"
+if test -e "$fTarget"; then
+    echo "  - is OK     [$fTarget]"
+else    
     # TODO file selected are passt in different way then by nautilus :(
 
     echo '[Desktop Entry]
-Name=2Qest
-Exec='"$twoQuestHOME""/shs/selectorStep1.sh"' "%F"
+Name='"$menuItem"'
+Exec='"$twoQestHOME""/shs/selectorStep1.sh"' "%F"
 Comment=Two run it with 2qest
 Terminal=true
-Icon='"$twoQuestHOME"'/assets/ico_in_64_64.png
+Icon='"$twoQestHOME"'/assets/ico_in_64_64.png
 Type=Application
 MimeType=video/mpeg;video/mp4;video/ogg;video/x-flv;video/x-ms-wmv;video/x-msvideo;
 Categories=Multimedia;Player;
 ' > "$fTarget"
-
+    
+    echo "  - making link for .desktop  [$fTarget]"
 
 fi
