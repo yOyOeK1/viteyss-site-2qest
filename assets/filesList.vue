@@ -104,7 +104,8 @@
 
 
             
-            <button titel="clip from current position" @click="onStopForNotes( fNo,'from' )"><img src="@viteyss-site-2qest/assets/ico_brackFromW_16_16.png"></img></button>
+            <button 
+                title="clip from current position as start" @click="onStopForNotes( fNo,'from' )"><img src="@viteyss-site-2qest/assets/ico_brackFromW_16_16.png"></img></button>
             <button @mousedown.prevent="onStopForNotes( fNo, '--d' )" @mouseup.prevent="onStopForNotes( fNo, '--u' )"
                 @touchdown.prevent="onStopForNotes( fNo, '--d' )" @touchup.prevent="onStopForNotes( fNo, '--u' )"
                 title="< seek frames"
@@ -119,7 +120,8 @@
                 @touchdown.prevent="onStopForNotes( fNo, '++d' )" @touchup.prevent="onStopForNotes( fNo, '++u' )"
                 title="> seek frames"
                 ><i class="fa-solid fa-angle-right"></i></button>
-            <button  titel="clip to current position" @click="onStopForNotes( fNo,'to' )"><img src="@viteyss-site-2qest/assets/ico_brackToW_16_16.png"></img></button>
+            <button  
+                title="clip to current position as end" @click="onStopForNotes( fNo,'to' )"><img src="@viteyss-site-2qest/assets/ico_brackToW_16_16.png"></img></button>
 
             {{ qest.opts[ fNo ]['currentTime']==-1?'0':msToDurationString(qest.opts[ fNo ]['currentTime'])}}
             / 
