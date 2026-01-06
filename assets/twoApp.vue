@@ -31,6 +31,7 @@
             @key-map-close="onEmit_hideKeyMap"/>
     </div>
     
+    | {{ getVersion }}
 
 
 </div>
@@ -182,6 +183,11 @@ data(){
 watch:{
     appViewMode(nv, ov){
         console.log('twoApp view mode switch ['+nv+']');
+    }
+},
+computed:{
+    getVersion(){
+        return siteByKey.s_vys2qestPage.o.package.version;
     }
 },
 methods:{

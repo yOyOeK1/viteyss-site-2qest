@@ -9,6 +9,14 @@ class s_vys2qestPage{
   constructor(){
 
     this.twoApp = createApp( twoApp );
+    
+    this.package = process.env.vy_config.pathsToSitesPackages.find( s=>{ 
+      //console.log('2qest package site -> ',s);
+      return s.package.name == 'viteyss-site-2qest';
+    });
+    this.package = this.package.package;
+    //console.log('2qest package ',this.packages);
+
   }
   
   get getName(){

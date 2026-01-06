@@ -3,7 +3,7 @@
 kiosk='chromium'
 #kiosk='firefox'
 
-twoQestHOME="/home/yoyo/Apps/viteyss-site-2qest/../viteyss" ## to setIt Up
+twoQestHOME="/home/yoyo/Apps/viteyss/../viteyss" ## to setIt Up
 
 #viteyssHOME='/home/yoyo/Apps/viteysxs'
 viteyssHOME="$twoQestHOME""/../viteyss"
