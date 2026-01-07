@@ -45,23 +45,17 @@ fi
 
 
 fTarget="$HOME""/.local/share/applications/""$menuItem"".desktop"
-echo "* installing it as a app $menuItem.desktop"
-if test -e "$fTarget"; then
-    echo "  - is OK     [$fTarget]"
-else    
-    # TODO file selected are passt in different way then by nautilus :(
+echo "* installing it as a app [ $fTarget ]"
 
-    echo '[Desktop Entry]
+echo '[Desktop Entry]
 Name='"$menuItem"'
 Exec='"$twoQestHOME""/shs/selectorStep1.sh"' "%F"
 Comment=Two run it with 2qest
 Terminal=true
 Icon='"$twoQestHOME"'/assets/ico_in_64_64.png
 Type=Application
-MimeType=video/mpeg;video/mp4;video/ogg;video/x-flv;video/x-ms-wmv;video/x-msvideo;
+MimeType=text/plain;video/mpeg;video/mp4;video/ogg;video/x-flv;video/x-ms-wmv;video/x-msvideo;
 Categories=Multimedia;Player;
 ' > "$fTarget"
     
-    echo "  - making link for .desktop  [$fTarget]"
-
-fi
+echo "  - making link for .desktop  [$fTarget]"

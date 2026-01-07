@@ -34,7 +34,7 @@
     | {{ getVersion }} 
 
     <div v-if="autoSaveEnabled" 
-        title="Auto save"
+        :title="'Auto save is enabled. Last at: '+autoSaveLastEntryDateStr"
         style="display: inline;"> | <i id="twoAppAutoSaveIndi" class="fa-solid fa-robot"></i></div>
 
 
@@ -126,8 +126,6 @@
 <hr></hr>
 </div>
 
-<button @click="onEmit_makeAutoSave('test1','abc')">thusetu</button>
-
 <div v-if="file!=-1" style="display: inline;">
     <TwoFileList 
         ref="tfl"
@@ -140,19 +138,23 @@
 </div>
 
 
+<div class="fHack">
+    test hack font 
+    <pre>
+
+        nice ?
+        or no ?
+
+    </pre>
+
+
+</div>
+
+
 
 </template>
 
 <style>
-
-@font-face {
-  font-family: hackvyss;
-  src: url("/libs/fonts/Hack-Regular.woff");
-}
-
-body {
-    font-family: "hackvyss";
-}
 
 .twoAppBar{
     padding: 5px;
@@ -187,7 +189,7 @@ mounted(){
         f = 'nst/2qest/251219tt_setOfTwo.js';
         f = 'nst/251226tt094859_2q_test1.js';
         f = 'nst/2Qest/251228tt093334.2qest';
-        this.test_loadFileOnStart( f );
+        //this.test_loadFileOnStart( f );
 
     },1000);
 },
@@ -198,16 +200,29 @@ data(){
     console.log('2Qest loaded with args?',qArg);
     if( qArg != -1 ){
         mStatus = 'argsStart';
+
+        if( qArg.startType == 'from context menu with .2qest' ){
+            mStatus = 'argsStartFile';
+            let fName = qArg.extraPayload.twoQestFilePath;
+            $.toast(`Opening .2qest ....<br><small>${fName}</small>`);
+            setTimeout(()=>{
+                this.onLoadFromJson( JSON.parse(qArg.extraPayload['twoQestRaw']) );
+            },300);   
+        }
+
     }
 
     setTimeout(()=>{
         this.autoSaveEnabled = true;
     });
 
+
     return {
         autoSaveEnabled: false,
         autoSaveIterator: -1,
         autoSaveLastState: '',
+        autoSaveLastEntryDateStr:'Not executed',
+
         appViewMode: 'basic1',
         appViewModes: ['basic1','PiP'],
 
@@ -296,6 +311,7 @@ methods:{
             loop:2,
             duration:500
         });
+        this.autoSaveLastEntryDateStr = `${new Date()}`;
     },
 
     onEmit_hideKeyMap(){ this.showKeymap = false; },

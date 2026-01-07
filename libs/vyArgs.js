@@ -6,11 +6,14 @@ function vyArgsChk ( qestName = 'NaNo.O' ){
     let opts = [];
     let notes = [];
     let tags = [];
-
+    let startType = 'NaNStartSet';
+    let extraPayload = undefined;
     
     if( 'vyArgs' in process.env.vy_config ){
         let args = JSON.parse(process.env.vy_config.vyArgs);
         if( args.name =='2qest' ){
+            startType = args.startType;
+            extraPayload = 'extraPayload' in args ? args.extraPayload : undefined;
             let j = JSON.cloneRaw( args.payload.files );
             let myI = 0;
             for( let f of j ){
@@ -28,6 +31,7 @@ function vyArgsChk ( qestName = 'NaNo.O' ){
         return -1;
 
     let qest = {
+        startType, extraPayload,
         name: qestName,
         files,
         rates,
