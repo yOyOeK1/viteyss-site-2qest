@@ -200,32 +200,26 @@
             <!-- TOOLS END -->
 
 
+            |
+
+            <button title="Clone tags from file in top"
+                v-show="qest.tags[ fNo ].length == 0"
+                @click="onCloneTagsFromTop()"
+                ><i class="fa-regular fa-copy"></i></button>
+                
+            <TagsColector
+                    :tags="qest.tags[ fNo ]"
+                    @tags-colector-add="onEmit_tagsAdd"
+                    @tags-colector-remove-index="onEmit_tagRemove"
+                    />
+            <br></br>
+            <textarea
+                rows="1"
+                placeholder="Notes to it"
+                style="width:95%;"
+                v-model="qest.notes[ fNo ]"
+                    />
         
-            
-
-            
-            <table style="width:95vw;">
-                <tr>
-                    <td style="vertical-align: top;">
-                        <textarea
-                            rows="3"
-                            placeholder="Notes to it"
-                            style="width:100%;"
-                            v-model="qest.notes[ fNo ]"
-                                />
-
-                    </td>
-                    <td style="vertical-align: top; max-width: 160px;">
-                        <TagsColector
-                            :tags="qest.tags[ fNo ]"
-                            @tags-colector-add="onEmit_tagsAdd"
-                            @tags-colector-remove-index="onEmit_tagRemove"
-                            />
-                    
-
-                    </td>
-                </tr>
-            </table>
 
         
             <hr></hr>
@@ -243,8 +237,8 @@
                 title="OK use in 2qest"
                 @click="onIsRate(fNo, 'ok')"><i class="fa-regular fa-circle-check"></i></button>
             <button
-                title="Maby use it" 
-                @click="onIsRate(fNo, 'maby')"><i class="fa-solid fa-circle-notch"></i></button>
+                title="Mayby use it" 
+                @click="onIsRate(fNo, 'mayby')"><i class="fa-solid fa-circle-notch"></i></button>
             <button 
                 title="No don't use it"
                 @click="onIsRate(fNo, 'no')"><i class="fa-regular fa-circle-xmark"></i></button>
@@ -428,7 +422,7 @@ methods:{
         
         //console.log('rates ',{ fNo, 'value':this.qest.rates[ fNo ] });
         if( this.qest.rates[ fNo ] == 'ok' ) tr = '#adff4b';
-        else if( this.qest.rates[ fNo ] == 'maby' ) tr = 'rgb(216, 255, 176)';
+        else if( this.qest.rates[ fNo ] == 'mayby' ) tr = 'rgb(216, 255, 176)';
         else if( this.qest.rates[ fNo ] == 'no' ) tr = 'rgb(236, 144, 144)';
         else if( this.qest.rates[ fNo ] == 'delete' ) tr = 'rgb(255, 69, 150)';
         
@@ -629,12 +623,23 @@ methods:{
             this.fSelect++;
     },
 
+
+    onCloneTagsFromTop(){
+        if( this.fSelect == 0 || this.fSelect == this.qest.tags.length ) return -1;
+
+        for( let t of this.qest.tags[ this.fSelect-1 ] )
+            this.qest.tags[ this.fSelect ].push( `${t}` );
+
+    },
+
     onEmit_tagRemove( index ){
         this.qest.tags[ this.fSelect ].splice( parseInt( index ), 1 );
     },
     onEmit_tagsAdd( event){
         console.log('tagsadd ',{ qest:this.qest, fSelect: this.fSelect });
         this.qest.tags[ this.fSelect ].push( `${event}` );
+        this.qest.tags[ this.fSelect ].sort();
+
     },
 
     onEmit_fileSelectUpdate( event ){

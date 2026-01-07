@@ -103,6 +103,9 @@ function jsonToShs( j, cliType = 'sh' ){
         let fOut = `${dirname}/${fileNoExt}_fNo${f}${ext}`;
         
         let opt = q.opts[ f ];
+        let fSufix = '';
+
+        if( q.tags[ f ].length > 0 ) fSufix+= '_'+q.tags[ f ].join('_');
 
 
         if( q.notes[ f ] != '' ){
@@ -113,8 +116,8 @@ function jsonToShs( j, cliType = 'sh' ){
         if( q.tags[ f ].length > 0 ){
             shs.push(`# file no: ${f} tags ---------------------- START`);
             shs.push(`#             * File source:  [ ${dirname}/${filename} ]`);
+            shs.push(`#             * Tags:         2q:#`+q.tags[ f ].join('\t2q:#'));
             shs.push(`#             * At time:      ${Date()}`);
-            shs.push(`#\t2q:#`+q.tags[ f ].join('\t2q:#'));
             shs.push(`# file no: ${f} tags ---------------------- END`);
         }
 
@@ -192,11 +195,12 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
 
 
             shs.push(`touch './_Ready/${f}__status_11_UPLOAD_START'`);
+            let targetFileName = `${j.qest.name}_${f}_${fileNoExt}_"$qAgent"_${fSufix}${ext}`;
             if( cliType == 'sh' ){
-                shs.push(`cp "./file${f}_DONE${ext}" "./_Ready/${j.qest.name}_${f}_${fileNoExt}_"$qAgent"_${ext}"`);
+                shs.push(`cp "./file${f}_DONE${ext}" "./_Ready/${targetFileName}"`);
                 
             } else if( cliType == 'shs' ){
-                shs.push(`scpIt.sh local "./file${f}_DONE${ext}" "${dirname}/${j.qest.name}_${f}_${fileNoExt}_"$qAgent"_${ext}"`);
+                shs.push(`scpIt.sh local "./file${f}_DONE${ext}" "${dirname}/${targetFileName}"`);
 
             }
             shs.push(`touch './_Ready/${f}__status_14_UPLOAD_FINISH'`);

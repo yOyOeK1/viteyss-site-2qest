@@ -31,7 +31,11 @@
             @key-map-close="onEmit_hideKeyMap"/>
     </div>
     
-    | {{ getVersion }}
+    | {{ getVersion }} 
+
+    <div v-if="autoSaveEnabled" 
+        title="Auto save"
+        style="display: inline;"> | <i id="twoAppAutoSaveIndi" class="fa-solid fa-robot"></i></div>
 
 
 </div>
@@ -65,6 +69,21 @@
         <button @click="onLoad()"><i class="fa-solid fa-upload"></i>Open file ...</button>
         <button @click="onSave()"><i class="fa-solid fa-floppy-disk"></i>Save file as ...</button></pre>
 
+        <div 
+            class="toolsRadio"
+            title="Auto save">
+            <input type="checkbox" v-model="autoSaveEnabled" 
+                style="display: inline;"
+                id="autoSaveEnabledInput"/>
+            <label for="autoSaveEnabledInput"
+                style="display: inline;">
+                <i class="fa-solid fa-robot"></i>&nbsp;Auto save
+            </label>
+        </div>
+
+
+    
+
     </VYButtonContext>
 
     |
@@ -78,6 +97,8 @@
 
     <input type="checkbox" v-model="debExec"
         title="debug stuff"></input>
+
+
 
 </div>
 
@@ -105,6 +126,7 @@
 <hr></hr>
 </div>
 
+<button @click="onEmit_makeAutoSave('test1','abc')">thusetu</button>
 
 <div v-if="file!=-1" style="display: inline;">
     <TwoFileList 
@@ -118,11 +140,23 @@
 </div>
 
 
+
 </template>
 
 <style>
+
+@font-face {
+  font-family: hackvyss;
+  src: url("/libs/fonts/Hack-Regular.woff");
+}
+
+body {
+    font-family: "hackvyss";
+}
+
 .twoAppBar{
     padding: 5px;
+    font-family: hackvyss;
 }
 
 
@@ -133,6 +167,8 @@
 import { jsonToShs, vyArgsChk } from '../libs/vyArgs';
 import {toRaw} from 'vue';
 import FilesList from './filesList.vue';
+import { animate as ajsanimate } from 'animejs';
+import iFs from 'indexeddb-fs';
 import Splash from './splash.vue';
 import VyButtonContext from '@viteyss-site-settings1/UiAssets/vyButtonContext.vue';
 import KeysMap from './keysMap.vue';
@@ -163,8 +199,15 @@ data(){
     if( qArg != -1 ){
         mStatus = 'argsStart';
     }
-    return {
 
+    setTimeout(()=>{
+        this.autoSaveEnabled = true;
+    });
+
+    return {
+        autoSaveEnabled: false,
+        autoSaveIterator: -1,
+        autoSaveLastState: '',
         appViewMode: 'basic1',
         appViewModes: ['basic1','PiP'],
 
@@ -183,6 +226,54 @@ data(){
 watch:{
     appViewMode(nv, ov){
         console.log('twoApp view mode switch ['+nv+']');
+    },
+    autoSaveEnabled( nv, ov ){
+        let tfl = this.$refs.tfl;
+        //console.log('autoSaveEnabele:',nv,' tfl type ',`${(typeof tfl)}`, tfl, ' qest in tfl', ('qest' in tfl));
+        //if( !this.$refs.tfl || this.$refs.tfl == null|| this.$refs.tfl == 'null'  ){
+        //return 1;
+        if( !('qest' in tfl) ){
+
+        }else if( nv ){
+            this.autoSaveIterator = setInterval(()=>{
+                let tflt = this.$refs.tfl;
+                if( !('qest' in tfl) || tflt == null ){
+                    
+                }else{
+                    let qest = tflt.onGetQest();
+                    let fileName = `${tflt.qest.name}`;
+                    let q = JSON.cloneRaw( qest );
+                    let currentState = `${JSON.dumpNice( q )}`;
+                    console.log('autosave chk same',
+                        currentState.length, ' to ', `${this.autoSaveLastState}`.length, 
+                        //'\ndata curren\n',currentState                    
+                    );
+                    if( `${this.autoSaveLastState}` != currentState ){                    
+                        $.toast(`<i class="fa-solid fa-robot"></i>&nbsp;Auto save ...`);
+                        this.autoSaveLastState = currentState;   
+                        this.onEmit_makeAutoSave( 
+                            toRaw(fileName), 
+                            JSON.dumpNice(toRaw(qest)) 
+                        );                        
+                
+                    }else{
+                        $.toast(`<i class="fa-solid fa-robot"></i>&nbsp;Auto skipp it's same ...`);
+                    
+                    }
+                }
+
+            },
+            //5000);
+            60000*5); // 5 min
+
+
+        }else if( this.autoSaveIterator != -1 ){
+            clearInterval( this.autoSaveIterator );
+            this.autoSaveIterator = -1;
+            this.autoSaveLastState = '';
+            this.currentState = '';
+
+        }
     }
 },
 computed:{
@@ -192,13 +283,29 @@ computed:{
 },
 methods:{
 
+
+    async onEmit_makeAutoSave( fileName, data ){   
+        if( fileName == '' ) fileName = 'NotNameFile'     
+        await iFs.createDirectory('/nst/2qestAutoSave');
+        await iFs.writeFile( `/nst/2qestAutoSave/${fileName}.2qest`, data );
+        console.log('makeAutoSave DONE');
+        ajsanimate('#twoAppAutoSaveIndi',{
+            opacity:[0.5,1,0.5,1],
+            rotate:[-45,+45,0],
+            alterate: true,
+            loop:2,
+            duration:500
+        });
+    },
+
     onEmit_hideKeyMap(){ this.showKeymap = false; },
 
-
     onSave( cbOnSave = undefined ){
+        let fileName = `${this.$refs.tfl.qest.name}`;
         let q = JSON.cloneRaw( this.$refs.tfl.onGetQest() );
-        console.log('q now : ',JSON.dumpNice( q ));
+        //console.log('q now : ',JSON.dumpNice( q ));
         setOpts.FileDialog('save', {
+            fileName,
             ext:'.2qest',
             data:JSON.dumpNice( q ),
             onSave: cbOnSave
