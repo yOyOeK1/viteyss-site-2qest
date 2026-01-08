@@ -247,7 +247,7 @@ watch:{
         //console.log('autoSaveEnabele:',nv,' tfl type ',`${(typeof tfl)}`, tfl, ' qest in tfl', ('qest' in tfl));
         //if( !this.$refs.tfl || this.$refs.tfl == null|| this.$refs.tfl == 'null'  ){
         //return 1;
-        if( !('qest' in tfl) ){
+        if( tfl &&  !('qest' in tfl) ){
 
         }else if( nv ){
             this.autoSaveIterator = setInterval(()=>{

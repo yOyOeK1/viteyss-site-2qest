@@ -10,8 +10,8 @@ function vyArgsChk ( qestName = 'NaNo.O' ){
     let extraPayload = undefined;
     
     if( 'vyArgs' in process.env.vy_config ){
-        let args = JSON.parse(process.env.vy_config.vyArgs);
-        if( args.name =='2qest' ){
+        let args = process.env.vy_config.vyArgs;
+        if( args.nameArgs =='2qest' ){
             startType = args.startType;
             extraPayload = 'extraPayload' in args ? args.extraPayload : undefined;
             let j = JSON.cloneRaw( args.payload.files );

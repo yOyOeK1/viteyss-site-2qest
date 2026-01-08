@@ -306,13 +306,15 @@ components:{
     "TagsColector": TagsColector,
 },
 mounted(){
-    if( this.qest.files.length > 0 )
-        this.fSelect = 0;
 
+
+    
     console.log('Files list mount key short cuts');
     window.addEventListener('keydown', e => this.manageKeyShortCuts( 'down',e ) );
     window.addEventListener('keyup', e => this.manageKeyShortCuts( 'up', e ) );
     
+    if( 'files' in this.qest && this.qest.files.length > 0 )
+        this.fSelect = 0;
 },
 data(){
     //let qest = vyArgsChk('qName - abc 32');   

@@ -6,10 +6,11 @@
     "asVite": true,
     "asPlugin": true,
     "jssrc":["c_vys_2qest_Page.js"],
+    "argvParser":"argvPrarses.js",
     "enable": true,
     "author": "Bartłomiej Ceglik <yoyoek@wp.pl>",
     "icon": "assets/ico_in64_64.png",
-    "ver": "0.0.1",
+    "ver": "0.0.0",
     "desc": "To asist in process of collecting multimedia to qest a.k.a. video.",
     "otdm":{
         "playground": false
