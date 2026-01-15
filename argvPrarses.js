@@ -1,18 +1,20 @@
 import path from 'node:path';
 import fs from 'fs';
 
-let debug = true;
+let debug = 'viteyssDebug' in process.env ? (process.env.viteyssDebug=='true'?true:false) : false;
+//let debug = true;
 
 class argvFor2qest{
     constructor(){
         //console.log('[@] vy2qest-argvParser ...init');
     }
-    handleRequestArgv = ( args ) => {
-        if( args.length == 2 && args[0] === '--site=2qest' ){
-            console.group(`* --site-2qest .... `);  
+    handleRequestArgv = ( argsOpts ) => {
+        
+        if( 'site' in argsOpts && argsOpts.site == '2qest' ){
+            console.group(`* --site=2qest .... `);  
               
 
-            let flist = args[1].replaceAll('--files=','').replaceAll(' /', '\n/').split('\n');
+            let flist = argsOpts.files.replaceAll(' /', '\n/').split('\n');
             let startType = 'from context menu';
             let extraPayload = {};
             
@@ -22,7 +24,7 @@ class argvFor2qest{
             }
 
             if( flist.length == 1 && flist[0].endsWith('.2qest') ){
-                console.log('* start with .2qest file ....');
+                console.log('* start with file .2qest ....');
                 let twoQf = fs.readFileSync( flist[0] ).toString();
                 let jqf = undefined;
                 try{
