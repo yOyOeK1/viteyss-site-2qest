@@ -836,7 +836,7 @@ methods:{
 
 
     onIsRate(fItem, rate){
-        this.qest.rates[ fItem ]= rate;
+        this.qest.rates[ fItem ] = rate;
         if( this.qest.files.length >= this.fSelect-1 && this.goToNext ){            
             this.set_fSelect( this.fSelect+1 );
         }

@@ -79,15 +79,17 @@ function msToTime(duration) {
 let fTotalInSh = 0;
 function atomTask( fNo, tNo, title, cmd ){
     let tr = [
-        `echo -n "# " && date && echo -e "# file no: ${fNo} / ${fTotalInSh} --- ${title} ... log at [ $tmpFFmpegLog ]" 2>&1 | tee -a "$tmpFFmpegLog"`,
+        `echo -n "# " && date && echo -e "# file no: ${fNo} / ${fTotalInSh} --- ${title}" 2>&1 | tee -a "$tmpFFmpegLog"`,
         //`echo -e "\n\n ${title}" && date >> "$tmpFFmpegLog"`,
         //`# --- ${title} ... log at [ $tmpFFmpegLog ]`,
         `touch './_Ready/${fNo}__status_${tNo}_${title}'`,
         //`ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf "transpose=1" './file${fNameLast}RotP${ext}'  >> "$tmpFFmpegLog" `,
+        'set +e',
         cmd,
         `endStatus="$?";`,
+        'set -e',
         //`echo "* [ ${title} ] done with code [ $endStatus ]"`,
-        `echo -e "#                              ... done ... code [ $endStatus ]" && echo -n "# " && date 2>&1 | tee -a "$tmpFFmpegLog"`,
+        `echo -e "#                              ... done" && echo -n "# " && date 2>&1 | tee -a "$tmpFFmpegLog"`,
         `echo "exitCode: $endStatus" >> "./_Ready/${fNo}__status_${tNo}_${title}_END"`
     ];
     return tr.join('\n');
@@ -100,12 +102,12 @@ function jsonToShs( j, cliType = 'sh' ){
     let shsDel = [];
     let shSleep = 5;
     let ffmpegArgs = '-loglevel -8';
-    let deleteSectionApIndex = 16;
+    let deleteSectionApIndex = 17;
     let shs = [
         "#!/bin/bash",
         '#-------------------\n\n',
         '# stop on any error .....',
-        'set +e\n\n',
+        'set -e\n\n',
         '# 2 Qest       [ '+j.qest.name+' ]',
         `# cliType:     [ ${cliType} ]`,
         `# generated at: [ ${qAgent} ]`,
@@ -113,7 +115,8 @@ function jsonToShs( j, cliType = 'sh' ){
         '# YES - to do it ',
         'deleteSelectedThisTime="NO"',
         'TrashDirectory=`mktemp -d`',
-        'echo "# Trash Directory: [ $TrashDirectory ]"',
+        'tmpFFmpegLog="$TrashDirectory""/ffmpeg.log"',
+        'echo "# Trash Directory: [ $TrashDirectory ]  ffmpeg log [ $tmpFFmpegLog ]"',
         //'tDir=`mktemp -d`',
         //'mkdir $tDir"/_Ready"',
         `echo "# winking dir is [$(pwd)] . . . . . all good? ... (wait ${shSleep} sec)"`,
@@ -176,18 +179,24 @@ function jsonToShs( j, cliType = 'sh' ){
 
             }
 
-        }else if( [ 'ok', 'mayby' ].indexOf( q.rates[ f ] ) != -1 ){
+        }else if( [ 'ok', 'mayby', 'maby' ].indexOf( q.rates[ f ] ) != -1 ){
             fSufix = q.rates[ f ]+"_"+fSufix;
 
             shs.push(`# work ---------------------- START
-tmpFFmpegLog="$TrashDirectory""/ffmpeg.log"
 date >> "$tmpFFmpegLog"
 baseDirF="${dirname}"
 touch './_Ready/${f}__status_00_START'
 touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
 
             if( cliType == 'sh' ){
-                shs.push(`cp "$baseDirF""/${filename}" './file${f}${ext}'`);
+                //
+                // sshfs -o allow_other,default_permissions,cache=yes,auto_cache,reconnect,uid=1000,gid=1000 \
+                //  a@21.21.21.21:/data/data/com.termux/files/home/tmp \
+                //  ./abciloo \
+                //  -p 2222
+                //
+                shs.push(`cp --preserve=timestamps "$baseDirF""/${filename}" './file${f}${ext}'`);
+                
 
             }else if( cliType == 'shs' ){
                 shs.push(`scpFrom.sh local "$baseDirF""/${filename}" './file${f}${ext}'`);
@@ -203,6 +212,7 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
                 '\n ext: ',ext );
             */
             let fNameLast = `${f}`;
+            let toCleanTmp = [];
             
             shs.push(`touch './_Ready/${f}__status_03_WORK_STAR'`);
 
@@ -215,6 +225,7 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
                     let tStart = msToTime( parseInt(opt.clipFrom*1000.00) );
                     let tTotal = msToTime( parseInt(opt.clipTo*1000.00) );
                     let clipCmd = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -ss ${tStart} -to ${tTotal} -c copy './file${fNameLast}Clip${ext}' `;// >> "$tmpFFmpegLog"`;
+                    toCleanTmp.push(`./file${fNameLast}Clip${ext}`);
 
                     if(1){
                         shs.push( atomTask( f, 4, 'CLIP', clipCmd) );
@@ -237,7 +248,10 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
             if( opt.stabilize ){
                 let stabi1 = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf vidstabdetect=stepsize=32:shakiness=7:accuracy=10:result=file${fNameLast}_stab_tvs.trf -f null - `;// >> "$tmpFFmpegLog"`;
                 let stabi2 = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf vidstabtransform=input=file${fNameLast}_stab_tvs.trf:zoom=0:smoothing=10,unsharp=5:5:0.8:3:3:0.4 -c:v libx264 -preset slow -crf 18 -c:a copy './file${fNameLast}Stab${ext}' `;// >> "$tmpFFmpegLog"`;
-                 if(1){
+                toCleanTmp.push(`./file${fNameLast}_stab_tvs.trf`);
+                toCleanTmp.push(`./file${fNameLast}Stab${ext}`);
+                
+                if(1){
                         shs.push( atomTask( f, 6, 'STABILIZE_STEPpass1', stabi1) );
                         shs.push( atomTask( f, 7, 'STABILIZE_STEPpass2', stabi2) );
                 }else{
@@ -263,7 +277,7 @@ if test -e './file${fNameLast}Stab${ext}';then
         echo "- file to small less then 100 kb ... swaping to org"
         touch './_Ready/${f}__status_07_STABpass2_FILE_TO_SMALL'
         echo -e "\n\n EE file to small EE" && date >> "$tmpFFmpegLog"
-        mv './file${fNameLast}Stab${ext}' \`mkfile\`
+        mv './file${fNameLast}Stab${ext}' \`mktemp\`
         cp './file${fNameLast}${ext}' './file${fNameLast}Stab${ext}'
     fi
 else 
@@ -279,6 +293,7 @@ fi
 
             if( opt.rotMin ){
                 let rotMinCmd = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf "transpose=2" './file${fNameLast}RotM${ext}' `;// >> "$tmpFFmpegLog"`;
+                toCleanTmp.push(`./file${fNameLast}RotM${ext}`);
                 if(1){
                     shs.push( atomTask( f, 8, 'ROTATE_MIN', rotMinCmd) );
                 }else{
@@ -297,6 +312,7 @@ fi
 
             if( opt.rotPlu ){
                 let rotPluCmd = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf "transpose=1" './file${fNameLast}RotP${ext}'  `;// >> "$tmpFFmpegLog"`;
+                toCleanTmp.push(`./file${fNameLast}RotP${ext}`);
                 if(1){
                     shs.push( atomTask( f, 9, 'ROTATE_PLU', rotPluCmd) );
                 }else{
@@ -321,6 +337,10 @@ fi
             let targetFileName = `${j.qest.name}_${f}_${fileNoExt}_"$qAgent"_${fSufix}${ext}`;
             if( cliType == 'sh' ){
                 shs.push(`cp "./file${f}_DONE${ext}" "./_Ready/${targetFileName}"`);
+                shs.push('timeStampSrc=`date -R -r "$baseDirF""/'+filename+'"`');
+                shs.push('echo "# * preserving timestamp of file [ $timeStampSrc ]"');
+                //shs.push('echo "# * to clean temporary files ... "; for toCleanTmp in `echo "'+toCleanTmp.join(" ")+'"`;do echo "   * rm: ... [ $toCleanTmp ]"; if test -e "$toCleanTmp";then rm "$toCleanTmp"; fi;done; echo "";');
+                shs.push(`touch -d "$timeStampSrc" "./_Ready/${targetFileName}"`);
                 
             } else if( cliType == 'shs' ){
                 shs.push(`scpIt.sh local "./file${f}_DONE${ext}" "$baseDirF""/${targetFileName}"`);
