@@ -76,18 +76,56 @@ function msToTime(duration) {
   return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
 }
 
+let fTotalInSh = 0;
+function atomTask( fNo, tNo, title, cmd ){
+    let tr = [
+        `echo -n "# " && date && echo -e "# file no: ${fNo} / ${fTotalInSh} --- ${title} ... log at [ $tmpFFmpegLog ]" 2>&1 | tee -a "$tmpFFmpegLog"`,
+        //`echo -e "\n\n ${title}" && date >> "$tmpFFmpegLog"`,
+        //`# --- ${title} ... log at [ $tmpFFmpegLog ]`,
+        `touch './_Ready/${fNo}__status_${tNo}_${title}'`,
+        //`ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf "transpose=1" './file${fNameLast}RotP${ext}'  >> "$tmpFFmpegLog" `,
+        cmd,
+        `endStatus="$?";`,
+        //`echo "* [ ${title} ] done with code [ $endStatus ]"`,
+        `echo -e "#                              ... done ... code [ $endStatus ]" && echo -n "# " && date 2>&1 | tee -a "$tmpFFmpegLog"`,
+        `echo "exitCode: $endStatus" >> "./_Ready/${fNo}__status_${tNo}_${title}_END"`
+    ];
+    return tr.join('\n');
+
+}
+
 function jsonToShs( j, cliType = 'sh' ){
+    let qAgent = localStorageH.getK('device/name');// nameOfThisClient
+   
+    let shsDel = [];
+    let shSleep = 5;
+    let ffmpegArgs = '-loglevel -8';
+    let deleteSectionApIndex = 16;
     let shs = [
         "#!/bin/bash",
         '#-------------------\n\n',
         '# stop on any error .....',
         'set +e\n\n',
-        '# 2 Qest  '+j.qest.name,'\n',
-        `# cliType: [${cliType}]\n`,
+        '# 2 Qest       [ '+j.qest.name+' ]',
+        `# cliType:     [ ${cliType} ]`,
+        `# generated at: [ ${qAgent} ]`,
+        `# ffmpegArgs:  [ ${ffmpegArgs} ]`,
+        '# YES - to do it ',
+        'deleteSelectedThisTime="NO"',
+        'TrashDirectory=`mktemp -d`',
+        'echo "# Trash Directory: [ $TrashDirectory ]"',
         //'tDir=`mktemp -d`',
         //'mkdir $tDir"/_Ready"',
-        'echo " * winking dir is [$(pwd)] . . . . . all good? (wait 5 sec)"',
-        'sleep 5',
+        `echo "# winking dir is [$(pwd)] . . . . . all good? ... (wait ${shSleep} sec)"`,
+        `sleep ${shSleep}`,
+        '',
+        "# delete section",
+        // deleteSectionApIndex update to inject !
+        "# delete section",
+        "# delete section",
+        "# delete section",
+        '',
+        '',
         'mkdir "./_Ready"',
         //'cd $tDir'        
     ];
@@ -96,6 +134,8 @@ function jsonToShs( j, cliType = 'sh' ){
 
     let q = j.qest;
     let fOkNo = 0;
+    let baseDirF = ''; 
+    fTotalInSh = q.files.length;
     for( let f=0,fc=q.files.length; f<fc; f++ ){
         console.log(` * [${f}] file .... rating [ ${q.rates[ f ]} ] `);
 
@@ -104,49 +144,64 @@ function jsonToShs( j, cliType = 'sh' ){
         let filename = fIn.substring( fIn.lastIndexOf('/')+1 );
         let ext = fIn.substring( fIn.lastIndexOf('.') );
         let fileNoExt = filename.substring( 0, filename.length-ext.length ); 
-        let fOut = `${dirname}/${fileNoExt}_fNo${f}${ext}`;
+        //let fOut = `${dirname}/${fileNoExt}_fNo${f}${ext}`;
         
         let opt = q.opts[ f ];
         let fSufix = '';
-
         if( q.tags[ f ].length > 0 ) fSufix+= '_'+q.tags[ f ].join('_');
 
+        shs.push(`\n\n# file no: ${f} ----------------[ ${q.rates[ f ]} ]  START\n#\n#`);
+
+        
+        
 
         if( q.notes[ f ] != '' ){
-            shs.push(`\n\n# file no: ${f} notes ----------------  START`);
-            shs.push(`# ${q.notes[ f ].replaceAll('\n','\n# ')}` );
-            shs.push(`# file no: ${f} notes --------------------- END`);
+            //shs.push(`# notes ----------------  START`);
+            shs.push(`# [note] # ${q.notes[ f ].replaceAll('\n','\n# [note] # ')}` );
+            //shs.push(`# notes --------------------- END`);
         }
         if( q.tags[ f ].length > 0 ){
-            shs.push(`# file no: ${f} tags ---------------------- START`);
-            shs.push(`#             * File source:  [ ${dirname}/${filename} ]`);
-            shs.push(`#             * Tags:         2q:#`+q.tags[ f ].join('\t2q:#'));
-            shs.push(`#             * At time:      ${Date()}`);
-            shs.push(`# file no: ${f} tags ---------------------- END`);
+            shs.push(`# tags ---------------------- START`);
+            shs.push(`#     * File source:  [ ${dirname}/${filename} ]`);
+            shs.push(`#     * Tags:         2q:#`+q.tags[ f ].join('\t2q:#'));
+            shs.push(`#     * At time:      ${Date()}`);
+            shs.push(`# tags ---------------------- END`);
         }
 
-        if( q.rates[ f ] == 'ok' ){
+        if( q.rates[ f ] == 'delete' ){
+            if( cliType == 'sh' ){
+                shsDel.push(`baseDirF="${dirname}"`);
+                shsDel.push(`echo "* delete ... [ $baseDirF""/${filename}" ]`);
+                shsDel.push(`mv "$baseDirF""/${filename}" "$TrashDirectory""/${filename}"`);
 
-            shs.push(`# file no: ${f} START
+            }
 
+        }else if( [ 'ok', 'mayby' ].indexOf( q.rates[ f ] ) != -1 ){
+            fSufix = q.rates[ f ]+"_"+fSufix;
+
+            shs.push(`# work ---------------------- START
+tmpFFmpegLog="$TrashDirectory""/ffmpeg.log"
+date >> "$tmpFFmpegLog"
+baseDirF="${dirname}"
 touch './_Ready/${f}__status_00_START'
-
 touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
 
             if( cliType == 'sh' ){
-                shs.push(`cp "${dirname}/${filename}" './file${f}${ext}'`);
+                shs.push(`cp "$baseDirF""/${filename}" './file${f}${ext}'`);
 
             }else if( cliType == 'shs' ){
-                shs.push(`scpFrom.sh local "${dirname}/${filename}" './file${f}${ext}'`);
+                shs.push(`scpFrom.sh local "$baseDirF""/${filename}" './file${f}${ext}'`);
 
             }
             shs.push(`touch './_Ready/${f}__status_02_DOWNLOAD_END'`);
 
 
+            /*
             console.log(`   - opts :`,JSON.stringify( opt ),
                 '\n dirname: ',dirname,
                 '\n filename: ',filename,
                 '\n ext: ',ext );
+            */
             let fNameLast = `${f}`;
             
             shs.push(`touch './_Ready/${f}__status_03_WORK_STAR'`);
@@ -156,38 +211,102 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
                 if( opt.clipFrom != 0 ||
                     ( opt.clipTo != opt.duration && opt.clipTo > opt.clipFrom )
                 ){
-                    shs.push(`touch './_Ready/${f}__status_04_CLIP_STAR'`);
+
                     let tStart = msToTime( parseInt(opt.clipFrom*1000.00) );
                     let tTotal = msToTime( parseInt(opt.clipTo*1000.00) );
-                    shs.push(`# --- clip ${opt.clipFrom} - ${opt.clipTo}`);
-                    shs.push(`ffmpeg -i './file${fNameLast}${ext}' -ss ${tStart} -to ${tTotal} -c copy './file${fNameLast}Clip${ext}'`);
-                    shs.push(`touch './_Ready/${f}__status_05_CLIP_END'`);
+                    let clipCmd = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -ss ${tStart} -to ${tTotal} -c copy './file${fNameLast}Clip${ext}' `;// >> "$tmpFFmpegLog"`;
+
+                    if(1){
+                        shs.push( atomTask( f, 4, 'CLIP', clipCmd) );
+                    }else{
+
+                        shs.push(`touch './_Ready/${f}__status_04_CLIP_STAR'`);
+                        shs.push('echo -e "\n\n clip " && date >> "$tmpFFmpegLog"')
+                        shs.push(`# --- clip ${opt.clipFrom} - ${opt.clipTo} ... log at [ $tmpFFmpegLog ]`);
+                        shs.push( clipCmd );
+                        
+                        shs.push('endStatus="$?";echo "* done with code [ $endStatus ]"');
+                        shs.push('echo "exitCode: $endStatus" >> "./_Ready/0__status_05_CLIP_END"');
+                        //shs.push(`touch './_Ready/${f}__status_05_CLIP_END'`);
+                    }
                     fNameLast+= 'Clip';
                 }
             }
 
 
             if( opt.stabilize ){
-                shs.push(`# --- stabilize`);
-                shs.push(`touch './_Ready/${f}__status_06_STABpass1'`);
-                shs.push(`ffmpeg -i './file${fNameLast}${ext}' -vf vidstabdetect=stepsize=32:shakiness=7:accuracy=10:result=file${fNameLast}_stab_tvs.trf -f null -`);
-                shs.push(`touch './_Ready/${f}__status_07_STABpass2'`);
-                shs.push(`ffmpeg -i './file${fNameLast}${ext}' -vf vidstabtransform=input=file${fNameLast}_stab_tvs.trf:zoom=0:smoothing=10,unsharp=5:5:0.8:3:3:0.4 -c:v libx264 -preset slow -crf 18 -c:a copy './file${fNameLast}Stab${ext}'`);
+                let stabi1 = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf vidstabdetect=stepsize=32:shakiness=7:accuracy=10:result=file${fNameLast}_stab_tvs.trf -f null - `;// >> "$tmpFFmpegLog"`;
+                let stabi2 = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf vidstabtransform=input=file${fNameLast}_stab_tvs.trf:zoom=0:smoothing=10,unsharp=5:5:0.8:3:3:0.4 -c:v libx264 -preset slow -crf 18 -c:a copy './file${fNameLast}Stab${ext}' `;// >> "$tmpFFmpegLog"`;
+                 if(1){
+                        shs.push( atomTask( f, 6, 'STABILIZE_STEPpass1', stabi1) );
+                        shs.push( atomTask( f, 7, 'STABILIZE_STEPpass2', stabi2) );
+                }else{
+                    shs.push('echo -e "\n\n stabilize - step 1" && date >> "$tmpFFmpegLog"')
+                    shs.push('# --- stabilize ... log at [ $tmpFFmpegLog ]');
+                    shs.push(`touch './_Ready/${f}__status_06_STABpass1'`);
+                    shs.push(stabi1);
+                    shs.push('endStatus="$?";echo "* done with code [ $endStatus ]"');
+                    shs.push('echo "exitCode: $endStatus" >> "./_Ready/0__status_06_STABpass1_END"');
+
+
+                    shs.push('echo -e "\n\n stabilize - step 2" && date >> "$tmpFFmpegLog"')
+                    shs.push(`touch './_Ready/${f}__status_07_STABpass2'`);
+                    shs.push(stabi2);
+                    shs.push('endStatus="$?";echo "* done with code [ $endStatus ]"');
+                    shs.push('echo "exitCode: $endStatus" >> "./_Ready/0__status_07_STABpass2_END"');
+                }
+
+                shs.push(`# --- stabilize - test if it's ok  --- START
+if test -e './file${fNameLast}Stab${ext}';then 
+    echo "-  ok file is at place"
+    if test \`du './file${fNameLast}Stab${ext}' | awk '{print $1}'\` -lt "100";then
+        echo "- file to small less then 100 kb ... swaping to org"
+        touch './_Ready/${f}__status_07_STABpass2_FILE_TO_SMALL'
+        echo -e "\n\n EE file to small EE" && date >> "$tmpFFmpegLog"
+        mv './file${fNameLast}Stab${ext}' \`mkfile\`
+        cp './file${fNameLast}${ext}' './file${fNameLast}Stab${ext}'
+    fi
+else 
+    echo "- file missing ... swap to org"
+    touch './_Ready/${f}__status_07_STABpass2_FILE_MISSING'
+    echo -e "\n\n EE file missing EE" && date >> "$tmpFFmpegLog"
+    cp './file${fNameLast}${ext}' './file${fNameLast}Stab${ext}'
+fi                 
+# --- stabilize - test if it's ok --- END`);
+                
                 fNameLast+= 'Stab';
             }
 
             if( opt.rotMin ){
-                shs.push(`# --- rotMin`);+
-                shs.push(`touch './_Ready/${f}__status_08_rotMin'`);
-                shs.push(`ffmpeg -i './file${fNameLast}${ext}' -vf "transpose=2" './file${fNameLast}RotM${ext}'`);
+                let rotMinCmd = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf "transpose=2" './file${fNameLast}RotM${ext}' `;// >> "$tmpFFmpegLog"`;
+                if(1){
+                    shs.push( atomTask( f, 8, 'ROTATE_MIN', rotMinCmd) );
+                }else{
+                    shs.push('echo -e "\n\n rotMin" && date >> "$tmpFFmpegLog"')
+                    shs.push(`# --- rotMin ... log at [ $tmpFFmpegLog ]`);+
+                    shs.push(`touch './_Ready/${f}__status_08_rotMin'`);
+                    shs.push( rotMinCmd );
+                    shs.push('endStatus="$?";echo "* done with code [ $endStatus ]"');
+                    shs.push('echo "exitCode: $endStatus" >> "./_Ready/0__status_08_rotMin_END"');
+                }
                 fNameLast+= 'RotM';
 
             }
 
+
+
             if( opt.rotPlu ){
-                shs.push(`# --- rotPlu`);
-                shs.push(`touch './_Ready/${f}__status_09_rotPlu'`);
-                shs.push(`ffmpeg -i './file${fNameLast}${ext}' -vf "transpose=1" './file${fNameLast}RotP${ext}'`);
+                let rotPluCmd = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf "transpose=1" './file${fNameLast}RotP${ext}'  `;// >> "$tmpFFmpegLog"`;
+                if(1){
+                    shs.push( atomTask( f, 9, 'ROTATE_PLU', rotPluCmd) );
+                }else{
+                    shs.push('echo -e "\n\n rotPlu" && date >> "$tmpFFmpegLog"')
+                    shs.push(`# --- rotPlu ... log at [ $tmpFFmpegLog ]`);
+                    shs.push(`touch './_Ready/${f}__status_09_rotPlu'`);
+                    shs.push( rotPluCmd );
+                    shs.push('endStatus="$?";echo "* done with code [ $endStatus ]"');
+                    shs.push('echo "exitCode: $endStatus" >> "./_Ready/0__status_09_rotPlu_END"');
+                }
                 fNameLast+= 'RotP';
                 
             }
@@ -204,23 +323,28 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
                 shs.push(`cp "./file${f}_DONE${ext}" "./_Ready/${targetFileName}"`);
                 
             } else if( cliType == 'shs' ){
-                shs.push(`scpIt.sh local "./file${f}_DONE${ext}" "${dirname}/${targetFileName}"`);
+                shs.push(`scpIt.sh local "./file${f}_DONE${ext}" "$baseDirF""/${targetFileName}"`);
 
             }
             shs.push(`touch './_Ready/${f}__status_14_UPLOAD_FINISH'`);
 
 
-            shs.push(`\n# file no: ${f} END\n\n`);
+            shs.push(`#\n# work ---------------------- END\n#`);
         }
         
         let rate = q.rates[ f ]?q.rates[ f ]:'NaN';
         shs.push(`touch './_Ready/${f}_${fileNoExt}_2q${ext}_asRate_${rate}'`);
         shs.push(`touch './_Ready/${f}__status_000${rate}'`);
         
+        shs.push(`#\n#\n# file no: ${f} ----------------  END\n\n`);
     }
     shs.push(`echo "_Ready in: [ $(pwd)/_Ready ]"`);
     shs.push(`#DONE`);
-    
+
+    if( cliType == 'sh' ) // add delete section
+        shs.splice( deleteSectionApIndex, 0, `# delete selected as DELETE ?\nif test "YES" = "$deleteSelectedThisTime";then\n\n\t`+shsDel.join('\n\t')+`\n\nfi\n# delete selected as DELETE ---- END` );
+
+
     return shs;
 }
 
