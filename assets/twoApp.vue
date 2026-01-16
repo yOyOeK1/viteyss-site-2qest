@@ -389,7 +389,7 @@ computed:{
     },
     kbBackgroundTwoApp(){
         console.log('#kbBackgroundTwoApp');
-        return '#ffaa44';
+        return 'rgb(119, 83, 39)';
     }
 },
 methods:{

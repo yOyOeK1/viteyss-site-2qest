@@ -189,7 +189,7 @@
             </div>
             |
             <div title="rot +90"
-            class="toolsRadio">
+                class="toolsRadio">
                 <input type="checkbox" v-model="qest.opts[ fNo ]['rotPlu']" 
                     style="display: inline;"
                     id="nextOptRotPlu"/>
@@ -227,15 +227,16 @@
         
             <hr></hr>
 
+            <button
+                title="Clone current file" 
+                @click="onMakeCopyClip( fNo )"><i class="fa-regular fa-copy"></i></button>
+            
+            |
 
             <input type="checkbox" v-model="goToNext" 
                 id="nextAfterRating" style="display:inline;"/>
             <label for="nextAfterRating" style="display:inline;">next</label>
-            |
-
-            <button
-                title="Clone current file" 
-                @click="onMakeCopyClip( fNo )"><i class="fa-regular fa-copy"></i></button>
+            &nbsp;            
             <button 
                 title="OK use in 2qest"
                 @click="onIsRate(fNo, 'ok')"><i class="fa-regular fa-circle-check"></i></button>
@@ -721,7 +722,7 @@ methods:{
     },
     onMakeCopyClip( fNo ){
         console.log('clon ....',fNo);
-        this.qest.files.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.files[ fNo ]))) );
+        this.qest.files.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.files[ fNo ] ))) );
         this.qest.rates.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.rates[ fNo ] ))) );
         this.qest.fInfos.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.fInfos[ fNo ]))) );
         this.qest.opts.splice( fNo, 0,  JSON.parse(JSON.stringify(toRaw( this.qest.opts[ fNo ]))) );
@@ -732,8 +733,9 @@ methods:{
         //    key => 
         //        this.qest[ key ].splice( fNo, 0, JSON.cloneRaw( this.qest[ key ][ fNo ] ) ) 
         //);
-        if( this.qest.files.length >= this.fSelect-1 && this.goToNext )
-            this.fSelect++;
+        //if( this.qest.files.length >= this.fSelect-1 && this.goToNext )
+        //    this.fSelect++;
+        $.toast(`<pre class="fHack"><i class="fa-regular fa-copy"></i> Cloning ... DONE\n* fNo:\t[ ${fNo+1} ]\n* file:\t[ ${this.qest.files[ fNo ]} ]\n  ...</pre>`);
     },
 
 
