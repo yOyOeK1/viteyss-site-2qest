@@ -40,7 +40,7 @@
 
     <section :id="`fileSection`+fNo"></section>
     <div class="smallBt"
-        :style="(fNo==fSelect?'background-color: rgb(189, 203, 230);':'')">
+        :style="(fNo==fSelect?'background-color: '+kbBackgroundFileList+';':'')">
         <table>
             <tr>
                 <td>
@@ -78,8 +78,7 @@
     
 
 
-        <div v-if="fNo==fSelect"
-            style="background-color: #242e41; color:white;">
+        <div v-if="fNo==fSelect">
             <!--
                 :mySrc="`file://`+fItem"
                 -->
@@ -123,9 +122,13 @@
             <button  
                 title="clip to current position as end" @click="onStopForNotes( fNo,'to' )"><img src="@viteyss-site-2qest/assets/ico_brackToW_16_16.png"></img></button>
 
-            {{ qest.opts[ fNo ]['currentTime']==-1?'0':msToDurationString(qest.opts[ fNo ]['currentTime'])}}
-            / 
-            {{ qest.opts[ fNo ]['duration']==-1?'0':msToDurationString(qest.opts[ fNo ]['duration'])}}
+            <div
+                class="smallBt"
+                >
+                {{ qest.opts[ fNo ]['currentTime']==-1?'0':msToDurationString(qest.opts[ fNo ]['currentTime'])}}
+                / 
+                {{ qest.opts[ fNo ]['duration']==-1?'0':msToDurationString(qest.opts[ fNo ]['duration'])}}
+            </div>
 
 
 
@@ -138,7 +141,7 @@
             <div v-if="qest.opts[ fNo ]['clipTo']!=-1"
                 class="toolsRadio"
                 style="display: inline-block;"
-                title="Clip this video to">
+                title="Clip on this video at from - to">
                 <i class="fa-solid fa-scissors"></i>
                 [ <a @click="onSeekTo(fNo,'from')">{{ msToDurationString( qest.opts[ fNo ]['clipFrom'] ) }}</a> ]
                 - 
@@ -276,6 +279,7 @@
     border-radius: 6px;
     padding: 4px;
     display: inline-block;
+    color:white;
 }
 
 .toolsRadio label{
@@ -298,7 +302,7 @@ import { toRaw } from 'vue';
 
 export default{
 
-props: [ 'qestAs', 'viewMode' ],
+props: [ 'qestAs', 'viewMode', 'kbBackgroundFileList' ],
 
 components:{
     "FFile": File,
@@ -310,8 +314,8 @@ mounted(){
 
     
     console.log('Files list mount key short cuts');
-    window.addEventListener('keydown', e => this.manageKeyShortCuts( 'down',e ) );
-    window.addEventListener('keyup', e => this.manageKeyShortCuts( 'up', e ) );
+    //window.addEventListener('keydown', e => this.manageKeyShortCuts_4Delete( 'down',e ) );
+    //window.addEventListener('keyup', e => this.manageKeyShortCuts_4Delete( 'up', e ) );
     
     if( 'files' in this.qest && this.qest.files.length > 0 )
         this.fSelect = 0;
@@ -460,12 +464,119 @@ methods:{
 
     },
 
+/*
     manageKeyShortCuts( eventWay, e ){
         let focusOn = document.activeElement;
         console.log( 'got key ',e, ' keycode: ',e.keyCode,' alt:'+e.altKey+' ctr:'+e.ctrlKey+' focuse on ['+focusOn.tagName+']');
         let setPrevent = false;
 
         if( ['DIV','VIDEO' ].indexOf( focusOn.tagName ) != -1 ){
+            if( e.keyCode == 32){// space
+                if( eventWay == 'down' ){
+                    //console.log('space ! down ');
+                    if( !this.isPlaing ) this.onStopForNotes( this.fSelect, 'play' );
+                    else this.onStopForNotes( this.fSelect, 'stop' );
+                }
+                setPrevent = true;
+
+            } else  if( e.keyCode == 49 && eventWay == 'down' ){ // 1 stabi
+                this.qest.opts[ this.fSelect ]['stabilize'] = ! this.qest.opts[ this.fSelect ]['stabilize'];
+
+            } else  if( e.keyCode == 50 && eventWay == 'down'){ // 2 rot left
+                this.qest.opts[ this.fSelect ]['rotMin'] = !this.qest.opts[ this.fSelect ]['rotMin'];
+
+            } else  if( e.keyCode == 51 && eventWay == 'down'){ // 3 rot right
+                this.qest.opts[ this.fSelect ]['rotPlu'] = !this.qest.opts[ this.fSelect ]['rotPlu'];
+            
+
+            } else if( e.altKey ){
+                if( eventWay == 'up' && (e.keyCode == 65 || e.code == 'ArrowLeft') ){ 
+                // clip left
+                    this.onStopForNotes( this.fSelect, 'from' );
+                
+                } else if( eventWay == 'up' && (e.keyCode == 85 || e.code == 'ArrowRight') ){ 
+                    // clip right
+                    this.onStopForNotes( this.fSelect, 'to' );
+                }
+                setPrevent = true;
+
+            } else if( e.ctrlKey ){
+                if( eventWay == 'up' && (e.keyCode == 65 || e.code == 'ArrowLeft') ){ 
+                    // seek to clip left
+                    this.onSeekTo(this.fSelect,'from');
+                    setPrevent = true;
+                    
+                } else if( eventWay == 'up' && (e.keyCode == 85 || e.code == 'ArrowRight') ){ 
+                    // seek to clip right
+                    this.onSeekTo(this.fSelect, 'to');
+                    setPrevent = true;
+                }
+
+            } else if( e.keyCode == 65 || e.code == 'ArrowLeft' ){ // seek left
+
+                if( e.shiftKey && eventWay == 'down' ){
+                    this.onSeek( 0.00 );
+                }else{
+                    if( eventWay == 'down' )
+                        this.onStopForNotes( this.fSelect, '--d' );
+                    if( eventWay == 'up' )
+                        this.onStopForNotes( this.fSelect, '--u' );
+                }
+
+                setPrevent = true;
+
+            } else if( e.keyCode == 85 || e.code == 'ArrowRight' ){ // seek right
+
+                if( e.shiftKey && eventWay == 'down' ){
+                    this.onSeek( -1 );
+                }else{
+                    if( eventWay == 'down' )
+                        this.onStopForNotes( this.fSelect, '++d' );
+                    if( eventWay == 'up' )
+                        this.onStopForNotes( this.fSelect, '++u' );
+                }
+
+                setPrevent = true;
+
+            }
+
+        }
+
+        if( setPrevent ){
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+    },
+*/
+    manageKeyShortCuts_v2( eventWay, e='' ){
+        let focusOn = document.activeElement;
+        //console.log( 'got key ',e, ' keycode: ',e.keyCode,' alt:'+e.altKey+' ctr:'+e.ctrlKey+' focuse on ['+focusOn.tagName+']');
+        console.log( 'got key ['+eventWay+']');
+        let setPrevent = false;
+
+        if( eventWay == 'select video lower' ){
+            this.set_fSelect( this.fSelect+1 );
+            this.onEmit_scrollToFSelection();
+        
+        } else if( eventWay == 'select video above' ){
+            this.onEmit_scrollToFSelection();
+            this.set_fSelect( this.fSelect-1 );
+
+        } else if( eventWay == 'play / stop'){ 
+            if( !this.isPlaing ) this.onStopForNotes( this.fSelect, 'play' );
+            else this.onStopForNotes( this.fSelect, 'stop' );
+
+        } else if( eventWay == 'seek left' ){ this.onStopForNotes( this.fSelect, '--' );
+        } else if( eventWay == 'seek right' ){ this.onStopForNotes( this.fSelect, '++' );
+        } else if( eventWay == 'seek to 0' ){ this.onSeek( 0.00 );
+        } else if( eventWay == 'seek to end' ){ this.onSeek( -1 );
+        } else if( eventWay == 'set clip START' ){ this.onStopForNotes( this.fSelect,'from' );
+        } else if( eventWay == 'set clip END' ){ this.onStopForNotes( this.fSelect,'to' );
+        } else if( eventWay == 'jump to clip START' ){ this.onSeekTo( this.fSelect, 'from' );
+        } else if( eventWay == 'jump to clip END' ){ this.onSeekTo( this.fSelect, 'to' );
+
+        }else if( ['DIV','VIDEO' ].indexOf( focusOn.tagName ) != -1 ){
             if( e.keyCode == 32){// space
                 if( eventWay == 'down' ){
                     //console.log('space ! down ');
@@ -710,12 +821,21 @@ methods:{
 
     },
 
+    set_fSelect( nfSel ){
+        if( nfSel >= 0 && this.qest.files.length >= (nfSel+1) )
+            this.fSelect = nfSel;
+        else
+            console.log('fSelect got set out of range '+nfSel);
+        //if( this.qest.files.length >= this.fSelect-1 && this.goToNext ){            
+        //    this.fSelect++;
+        //}
+    },
+
 
     onIsRate(fItem, rate){
         this.qest.rates[ fItem ]= rate;
-        if( this.qest.files.length >= this.fSelect-1 && this.goToNext ){
-            
-            this.fSelect++;
+        if( this.qest.files.length >= this.fSelect-1 && this.goToNext ){            
+            this.set_fSelect( this.fSelect+1 );
         }
 
     },
@@ -756,7 +876,11 @@ methods:{
         }
 
 
-        if( action == '--u' || action == '++u' ){
+        if( action == '--' || action == '++' ){
+            let multi = action.startsWith('--')? -1.00 : 1.00;
+            vp.currentTime += multi / 30.00;
+        
+        }else if( action == '--u' || action == '++u' ){
             clearInterval( this.longPress );
             this.longPress = -1;
             this.longPressTime = 1.00;

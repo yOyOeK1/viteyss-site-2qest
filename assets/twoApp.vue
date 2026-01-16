@@ -11,6 +11,20 @@
         font-size: 80%;
         
     ">
+    
+    <VYButtonContext
+          
+        title="Show keyboard short cuts map"
+        icon="<i class='fa-regular fa-keyboard'></i>"
+        v-model:is-showing="showKeymapv2"
+        >
+
+        <div v-html="kbCurrentMap"
+            style="min-width: 90%;"></div>
+    </VYButtonContext>({{ kbState }})
+    
+    |
+
     2App | mStatus:({{ mStatus }}) |
 
     <select v-model="appViewMode">
@@ -27,10 +41,12 @@
         @click="showKeymap = true">k</a>]
 
     <div v-if="showKeymap">
-        <KeysMap 
-            @key-map-close="onEmit_hideKeyMap"/>
+        
     </div>
     
+      
+
+
     | {{ getVersion }} 
 
     <div v-if="autoSaveEnabled" 
@@ -126,9 +142,14 @@
 <hr></hr>
 </div>
 
-<div v-if="file!=-1" style="display: inline;">
+<div v-if="file!=-1" 
+    :style="'display: inline;'+
+        'background-color: #242e41; color:white;' 
+        "
+    >
     <TwoFileList 
         ref="tfl"
+        :kbBackgroundFileList="kbBackgroundTwoApp"
         :qestAs="file"
         :viewMode="appViewMode"
     />
@@ -162,6 +183,19 @@
 }
 
 
+.kbKey{
+    border-radius: 3px;
+    border:1px solid black;
+    background-color: #fffecb;
+    color:black;
+    display:inline-block; 
+    padding: 0px 5px;
+    margin: 3px;
+
+}
+
+
+
 </style>
 
 
@@ -174,6 +208,8 @@ import iFs from 'indexeddb-fs';
 import Splash from './splash.vue';
 import VyButtonContext from '@viteyss-site-settings1/UiAssets/vyButtonContext.vue';
 import KeysMap from './keysMap.vue';
+
+import { keyBind as keyBindDvorak ,keyMap1 as keyMap1Dvorak } from '../keyMaps/2qest_dvorak_ver2.js';
 
 export default{
 components:{
@@ -192,7 +228,21 @@ mounted(){
         //this.test_loadFileOnStart( f );
 
     },1000);
+
+    console.log('2Qest - vyKeyBinder kb .... on mount ready? [ '+(typeof this.kb)+' ]');
+    if( typeof this.kb == 'object' ){
+        this.kb.enable();
+    }
+
+
 },
+unmounted(){
+    console.log('2Qest - vyKeyBinder kb .... unmount ready? [ '+(typeof this.kb)+' ]');
+    if( typeof this.kb == 'object' ){
+        this.kb.disable();
+    }
+},
+
 data(){
 
     let mStatus = 'loaded';
@@ -216,8 +266,49 @@ data(){
         this.autoSaveEnabled = true;
     });
 
+    let vykb = undefined;
+    if( 'vyKeyBinder' in window ){
+        console.log('2Qest - vyKeyBinder ... OK ');
+
+        console.log('2Qest - vyKeyBinder ... setting dvorak layout');
+        vykb = new window.vyKeyBinder( keyBindDvorak, keyMap1Dvorak,
+            (onKeyShort)=>{
+                //console.log(`vyKeyBinder\n`,onKeyShort, ' tfl type:',(typeof this.$refs.tfl),this.$refs.tfl);
+                if( typeof this.$refs.tfl == 'object' ){
+                    let focusOn = document.activeElement;
+                    console.log('[i] kb focus ... '+focusOn.tagName);
+                    
+                    if( onKeyShort == 'keyboard shortcuts map' ){
+                        console.log(`vyKeyBinder local -> [${onKeyShort}]`); 
+                        this.showKeymapv2 = !this.showKeymapv2;    
+
+                    }else if( onKeyShort == 'save ...' ){ 
+                        console.log(`vyKeyBinder local -> [${onKeyShort}]`);
+                        this.onSave()
+
+                    }else{
+                        console.log(`vyKeyBinder bind to -> `);
+                        this.$refs.tfl.manageKeyShortCuts_v2( onKeyShort )
+                    }
+                }
+            }, 
+            false 
+        );
+        vykb.init();
+        vykb.disable();
+
+
+    }else{
+        console.log('2Qest - vyKeyBinder ... NOT INSTALLED !!  ');
+    }
+
 
     return {
+        kb: vykb,
+        kbCurrentMap: vykb.getKeyDivInfo(),
+        kbState:'-',
+
+
         autoSaveEnabled: false,
         autoSaveIterator: -1,
         autoSaveLastState: '',
@@ -228,6 +319,7 @@ data(){
 
         showMenuFile: false,
         showKeymap: false,
+        showKeymapv2: false,
 
         mStatus,
         file: qArg,
@@ -294,6 +386,10 @@ watch:{
 computed:{
     getVersion(){
         return siteByKey.s_vys2qestPage.o.package.version;
+    },
+    kbBackgroundTwoApp(){
+        console.log('#kbBackgroundTwoApp');
+        return '#ffaa44';
     }
 },
 methods:{
@@ -315,6 +411,7 @@ methods:{
     },
 
     onEmit_hideKeyMap(){ this.showKeymap = false; },
+    onEmit_hideKeyMapv2(){ this.showKeymapv2 = false; },
 
     onSave( cbOnSave = undefined ){
         let fileName = `${this.$refs.tfl.qest.name}`;
