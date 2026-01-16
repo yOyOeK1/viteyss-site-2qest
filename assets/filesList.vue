@@ -78,7 +78,8 @@
     
 
 
-        <div v-if="fNo==fSelect">
+        <div v-if="fNo==fSelect"
+            style="color:white;">
             <!--
                 :mySrc="`file://`+fItem"
                 -->

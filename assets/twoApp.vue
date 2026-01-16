@@ -143,8 +143,8 @@
 </div>
 
 <div v-if="file!=-1" 
-    :style="'display: inline;'+
-        'background-color: #242e41; color:white;' 
+    :style="'display: inline;'
+        
         "
     >
     <TwoFileList 
