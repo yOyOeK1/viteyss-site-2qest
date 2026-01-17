@@ -45,17 +45,34 @@ fi
 
 
 fTarget="$HOME""/.local/share/applications/""$menuItem"".desktop"
+fTargetCon="$HOME""/.local/share/applications/""$menuItem""_convertToSh.desktop"
 echo "* installing it as a app [ $fTarget ]"
 
 echo '[Desktop Entry]
-Name='"$menuItem"'
-Exec='"$twoQestHOME""/shs/selectorStep1.sh"' "%F"
+Name=2Qest - v'"$npm_package_version"'
+Exec='"$twoQestHOME"'/shs/selectorStep1.sh 1 --site=2qest --files=0 %F
 Comment=Two run it with 2qest
 Terminal=true
 Icon='"$twoQestHOME"'/assets/ico_in_64_64.png
 Type=Application
 MimeType=text/plain;video/mpeg;video/mp4;video/ogg;video/x-flv;video/x-ms-wmv;video/x-msvideo;
 Categories=Multimedia;Player;
+Actions=OpenQest;ConvertShQest
 ' > "$fTarget"
+echo "  - making link for .desktop  [ $fTarget ]"
+
+echo '[Desktop Entry]
+Name=2Qest convert to sh - v'"$npm_package_version"'
+Exec='"$twoQestHOME"'/shs/selectorStep1.sh 0 --site=2qest --convertToSh=1 --files=0 %F
+Comment=Two run 2qest file convert to sh at spot
+Terminal=true
+Icon='"$twoQestHOME"'/assets/ico_inConvert_64_64.png
+Type=Application
+MimeType=text/plain;video/mpeg;video/mp4;video/ogg;video/x-flv;video/x-ms-wmv;video/x-msvideo;
+Categories=Multimedia;Player;
+Actions=OpenQest;ConvertShQest
+' > "$fTargetCon"
+
+echo "  - making link for .desktop  [ $fTargetCon ]"
+
     
-echo "  - making link for .desktop  [$fTarget]"

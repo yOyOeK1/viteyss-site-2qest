@@ -96,9 +96,54 @@ function atomTask( fNo, tNo, title, cmd ){
 
 }
 
-function jsonToShs( j, cliType = 'sh' ){
-    let qAgent = localStorageH.getK('device/name');// nameOfThisClient
-   
+function jsonToObject( jData ){
+    //console.log(' new qest ',jData);
+    let fSelect = -1;
+    let qest = jData.qest;
+    
+    // to update old files to current structure START
+    if( !('notes' in qest) ){
+        let n = [];
+        for(let i=0;i<qest.files.length; i++)
+            n.push('');
+        qest['notes'] = n
+    }
+
+    if( !('tags' in qest) ){
+        let t = [];
+        for(let i=0;i<qest.files.length; i++)
+            t.push([]);
+        qest['tags'] = t
+    }
+    // to update old files to current structure END
+
+
+    fSelect = jData.fSelect;
+
+    return {
+        qest,
+        fSelect,
+        goToNext: false,            
+    };
+}
+
+function objectToJSon( obJO ){
+    return {
+            qest: obJO.qest,
+            fSelect: '0',
+            goToNext: false,            
+        };
+}
+
+
+
+function jsonToShs( j, cliType = 'sh', qAgentForce = undefined ){
+    let qAgent = undefined;
+    if( qAgentForce == undefined )
+        qAgent = localStorageH.getK('device/name');// nameOfThisClient
+    else
+        qAgent = qAgentForce;
+
     let shsDel = [];
     let shSleep = 5;
     let ffmpegArgs = '-loglevel -8';
@@ -397,4 +442,4 @@ if( process && 'argv' in process && process.argv.length >= 3 ){
 }
 
 
-export{ vyArgsChk,jsonToShs }
+export{ vyArgsChk,jsonToShs, jsonToObject }

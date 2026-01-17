@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fs from 'fs';
+import { jsonToObject, jsonToShs } from './libs/vyArgs.js';
 
 let debug = 'viteyssDebug' in process.env ? (process.env.viteyssDebug=='true'?true:false) : false;
 //let debug = true;
@@ -10,11 +11,87 @@ class argvFor2qest{
     }
     handleRequestArgv = ( argsOpts ) => {
         
+        if( 'help' in argsOpts ){
+            console.group([`[h] help from - viteyss-site-2qest`,
+            
+            `--site=2qest ...`,
+            ` * with aditional `,
+            `  --files=... `,
+            `    can be path to : .mov .mp4 .avi . multimedia`,
+            `        or`,
+            `    .2qest - to open saved file`,
+
+            ` * with `,
+            `   --files=[pathTo.2qest] --convertToSh=1`,
+            `        will convert at spot and make file .sh from it`,
+            ``].join('\n# ')
+        ); 
+        }
+
         if( 'site' in argsOpts && argsOpts.site == '2qest' ){
             console.group(`* --site=2qest .... `);  
               
-
             let flist = argsOpts.files.replaceAll(' /', '\n/').split('\n');
+            
+            if( flist.length > 0 && flist[ flist.length-1 ].substring( flist[ flist.length-1 ].length-1 ) == ' ' )
+                flist[ flist.length-1 ] = flist[ flist.length-1 ].substring(0, flist[ flist.length-1 ].length-1 );
+
+
+            if( 'convertToSh' in argsOpts ){
+                console.log(`[?] Do you want to convert? ... [ ${flist} ]`);
+                console.log('* convert to sh mode ... ');
+                let filesRes = [];
+                for( let fi=0,fc=flist.length; fi< fc; fi++){
+                    let fStr = fs.readFileSync( flist[ fi ] ).toString();
+                    if( fStr.length > 100 ){
+                        let j = undefined;
+                        try{
+                            j = JSON.parse( fStr );
+                        }catch(e){
+                            console.log('EE file content to json error ...11',e);
+                            process.exit(11);
+                        }
+
+                        let qestObj = jsonToObject( j );
+                        console.log('* have qest object ...');
+                        let shsStr = jsonToShs( qestObj, 'sh', process.env['USER'] );
+                        console.log('* have sh ... ('+shsStr.length+') long');
+                        
+                        
+                        let tFile = `${flist[ fi ]}`.split('.');
+                        tFile.pop();
+                        tFile = tFile.join('.')+'_convert_'+(Date.now())+'.sh';
+                        
+                        console.log('* target sh file [ '+tFile+' ]');
+                        fs.writeFileSync( tFile, shsStr.join('\n') );
+                        filesRes.push( `\n\tfiles: [ ${j.qest.files.length} ]\n\ttarget: [ ${tFile} ] ` );
+
+                        //console.log('DONE ...77');
+                        //process.exit(77);
+
+
+                    }else{
+                        console.log('EE file to small ...10');
+                        process.exit(10);
+                    }
+                }
+
+
+                console.log(
+                    '* '+Date.now()+
+                    '\n* convert to sh mode ... exit 1 DONE'+
+                    '\n* files result:\n\t'+filesRes.join('\n\t') 
+                );
+
+
+                process.exit(11);
+            }
+
+
+
+
+
+
             let startType = 'from context menu';
             let extraPayload = {};
             
@@ -24,7 +101,9 @@ class argvFor2qest{
             }
 
             if( flist.length == 1 && flist[0].endsWith('.2qest') ){
-                console.log('* start with file .2qest ....');
+                console.log('* start with file .2qest .... ');
+                
+
                 let twoQf = fs.readFileSync( flist[0] ).toString();
                 let jqf = undefined;
                 try{
@@ -71,7 +150,7 @@ class argvFor2qest{
                 }
             });
             let qestStr = JSON.stringify(qest,null,4);
-            console.log(`have files from selection size. ... info on collected data (${qestStr.length}) of file: [ ${extraPayload['twoQestFilePath']} ]`
+            console.log(`have files from selection size. ... info on collected data (${qestStr.length}) of file: [ ${qest.files.length} ]`
             //    ,qestStr
             );
             //process.exit(-1);
