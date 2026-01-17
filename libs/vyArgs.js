@@ -190,10 +190,9 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
 
             if( cliType == 'sh' ){
                 //
-                // sshfs -o allow_other,default_permissions,cache=yes,auto_cache,reconnect,uid=1000,gid=1000 \
-                //  a@21.21.21.21:/data/data/com.termux/files/home/tmp \
-                //  ./abciloo \
-                //  -p 2222
+                // sshfs -o allow_other,default_permissions,cache=yes,auto_cache,reconnect,uid=1000,gid=1000 a@21.21.21.21:/data/data/com.termux/files/home/tmp ./abciloo -p 22
+                // sshfs -o allow_other,default_permissions,cache=yes,auto_cache,reconnect,uid=1000,gid=1000 a@192.168.43.88:/home/iloo/Videos ./Videos -p 22
+                // sshfs -o allow_other,default_permissions,cache=yes,auto_cache,reconnect,uid=1000,gid=1000 iloo@192.168.43.88:/home/iloo/Videos ./Videos -p 22
                 //
                 shs.push(`cp --preserve=timestamps "$baseDirF""/${filename}" './file${f}${ext}'`);
                 
@@ -359,10 +358,11 @@ fi
         shs.push(`#\n#\n# file no: ${f} ----------------  END\n\n`);
     }
     shs.push(`echo "_Ready in: [ $(pwd)/_Ready ]"`);
-    shs.push(`#DONE`);
+    shs.push(`# - DONE\ndate\n\n`);
+    
 
     if( cliType == 'sh' ) // add delete section
-        shs.splice( deleteSectionApIndex, 0, `# delete selected as DELETE ?\nif test "YES" = "$deleteSelectedThisTime";then\n\n\t`+shsDel.join('\n\t')+`\n\nfi\n# delete selected as DELETE ---- END` );
+        shs.splice( deleteSectionApIndex, 0, `# delete selected as DELETE ?\nif test "YES" = "$deleteSelectedThisTime";then\n\techo "# dir action ..."\n\n\t`+shsDel.join('\n\t')+`\n\nfi\n# delete selected as DELETE ---- END` );
 
 
     return shs;
