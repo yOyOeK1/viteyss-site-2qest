@@ -82,7 +82,7 @@ function atomTask( fNo, tNo, title, cmd ){
         `echo -n "# " && date && echo -e "# file no: ${fNo} / ${fTotalInSh} --- ${title}" 2>&1 | tee -a "$tmpFFmpegLog"`,
         //`echo -e "\n\n ${title}" && date >> "$tmpFFmpegLog"`,
         //`# --- ${title} ... log at [ $tmpFFmpegLog ]`,
-        `touch './_Ready/${fNo}__status_${tNo}_${title}'`,
+        `touch "$baseDirF"'/${fNo}__status_${tNo}_${title}_atom'`,
         //`ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf "transpose=1" './file${fNameLast}RotP${ext}'  >> "$tmpFFmpegLog" `,
         'set +e',
         cmd,
@@ -90,7 +90,7 @@ function atomTask( fNo, tNo, title, cmd ){
         'set -e',
         //`echo "* [ ${title} ] done with code [ $endStatus ]"`,
         `echo -e "#                              ... done" && echo -n "# " && date 2>&1 | tee -a "$tmpFFmpegLog"`,
-        `echo "exitCode: $endStatus" >> "./_Ready/${fNo}__status_${tNo}_${title}_END"`
+        `echo "exitCode: $endStatus" >> "$baseDirF""/${fNo}__status_${tNo}_${title}_END_atom"`
     ];
     return tr.join('\n');
 
@@ -175,6 +175,8 @@ function jsonToShs( j, cliType = 'sh', qAgentForce = undefined ){
         '',
         '',
         'mkdir "./_Ready"',
+        'wDirProfFile="./_'+j.qest.name+'"',
+        'mkdir "$wDirProfFile"',
         //'cd $tDir'        
     ];
 
@@ -230,8 +232,8 @@ function jsonToShs( j, cliType = 'sh', qAgentForce = undefined ){
             shs.push(`# work ---------------------- START
 date >> "$tmpFFmpegLog"
 baseDirF="${dirname}"
-touch './_Ready/${f}__status_00_START'
-touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
+touch "$wDirProfFile"'/${f}__status_00_START'
+touch "$wDirProfFile"'/${f}__status_01_DOWNLOAD_START'`);
 
             if( cliType == 'sh' ){
                 //
@@ -239,14 +241,15 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
                 // sshfs -o allow_other,default_permissions,cache=yes,auto_cache,reconnect,uid=1000,gid=1000 a@192.168.43.88:/home/iloo/Videos ./Videos -p 22
                 // sshfs -o allow_other,default_permissions,cache=yes,auto_cache,reconnect,uid=1000,gid=1000 iloo@192.168.43.88:/home/iloo/Videos ./Videos -p 22
                 //
-                shs.push(`cp --preserve=timestamps "$baseDirF""/${filename}" './file${f}${ext}'`);
+                //wDirProfFile
+                shs.push(`cp --preserve=timestamps "$baseDirF""/${filename}" "$wDirProfFile"'/file${f}${ext}'`);
                 
 
             }else if( cliType == 'shs' ){
-                shs.push(`scpFrom.sh local "$baseDirF""/${filename}" './file${f}${ext}'`);
+                shs.push(`scpFrom.sh local "$baseDirF""/${filename}" "$wDirProfFile"'/file${f}${ext}'`);
 
             }
-            shs.push(`touch './_Ready/${f}__status_02_DOWNLOAD_END'`);
+            shs.push(`touch "$wDirProfFile"'/${f}__status_02_DOWNLOAD_END'`);
 
 
             /*
@@ -258,7 +261,7 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
             let fNameLast = `${f}`;
             let toCleanTmp = [];
             
-            shs.push(`touch './_Ready/${f}__status_03_WORK_STAR'`);
+            shs.push(`touch "$wDirProfFile"'/${f}__status_03_WORK_STAR'`);
 
             if( opt.clipTo > opt.clipFrom ){
 
@@ -268,14 +271,14 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
 
                     let tStart = msToTime( parseInt(opt.clipFrom*1000.00) );
                     let tTotal = msToTime( parseInt(opt.clipTo*1000.00) );
-                    let clipCmd = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -ss ${tStart} -to ${tTotal} -c copy './file${fNameLast}Clip${ext}' `;// >> "$tmpFFmpegLog"`;
+                    let clipCmd = `ffmpeg ${ffmpegArgs} -i "$wDirProfFile"'/file${fNameLast}${ext}' -ss ${tStart} -to ${tTotal} -c copy "$wDirProfFile"'/file${fNameLast}Clip${ext}' `;// >> "$tmpFFmpegLog"`;
                     toCleanTmp.push(`./file${fNameLast}Clip${ext}`);
 
                     if(1){
                         shs.push( atomTask( f, 4, 'CLIP', clipCmd) );
                     }else{
 
-                        shs.push(`touch './_Ready/${f}__status_04_CLIP_STAR'`);
+                        shs.push(`touch "$wDirProfFile"'/${f}__status_04_CLIP_STAR'`);
                         shs.push('echo -e "\n\n clip " && date >> "$tmpFFmpegLog"')
                         shs.push(`# --- clip ${opt.clipFrom} - ${opt.clipTo} ... log at [ $tmpFFmpegLog ]`);
                         shs.push( clipCmd );
@@ -290,8 +293,8 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
 
 
             if( opt.stabilize ){
-                let stabi1 = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf vidstabdetect=stepsize=32:shakiness=7:accuracy=10:result=file${fNameLast}_stab_tvs.trf -f null - `;// >> "$tmpFFmpegLog"`;
-                let stabi2 = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf vidstabtransform=input=file${fNameLast}_stab_tvs.trf:zoom=0:smoothing=10,unsharp=5:5:0.8:3:3:0.4 -c:v libx264 -preset slow -crf 18 -c:a copy './file${fNameLast}Stab${ext}' `;// >> "$tmpFFmpegLog"`;
+                let stabi1 = `ffmpeg ${ffmpegArgs} -i "$wDirProfFile"'/file${fNameLast}${ext}' -vf vidstabdetect=stepsize=32:shakiness=7:accuracy=10:result="$wDirProfFile"/ile${fNameLast}_stab_tvs.trf -f null - `;// >> "$tmpFFmpegLog"`;
+                let stabi2 = `ffmpeg ${ffmpegArgs} -i "$wDirProfFile"'/file${fNameLast}${ext}' -vf vidstabtransform=input="$wDirProfFile"/file${fNameLast}_stab_tvs.trf:zoom=0:smoothing=10,unsharp=5:5:0.8:3:3:0.4 -c:v libx264 -preset slow -crf 18 -c:a copy "$wDirProfFile"'/file${fNameLast}Stab${ext}' `;// >> "$tmpFFmpegLog"`;
                 toCleanTmp.push(`./file${fNameLast}_stab_tvs.trf`);
                 toCleanTmp.push(`./file${fNameLast}Stab${ext}`);
                 
@@ -301,34 +304,36 @@ touch './_Ready/${f}__status_01_DOWNLOAD_START'`);
                 }else{
                     shs.push('echo -e "\n\n stabilize - step 1" && date >> "$tmpFFmpegLog"')
                     shs.push('# --- stabilize ... log at [ $tmpFFmpegLog ]');
-                    shs.push(`touch './_Ready/${f}__status_06_STABpass1'`);
+                    shs.push(`touch "$wDirProfFile"'/${f}__status_06_STABpass1'`);
                     shs.push(stabi1);
                     shs.push('endStatus="$?";echo "* done with code [ $endStatus ]"');
                     shs.push('echo "exitCode: $endStatus" >> "./_Ready/0__status_06_STABpass1_END"');
 
 
                     shs.push('echo -e "\n\n stabilize - step 2" && date >> "$tmpFFmpegLog"')
-                    shs.push(`touch './_Ready/${f}__status_07_STABpass2'`);
+                    shs.push(`touch "$wDirProfFile"'/${f}__status_07_STABpass2'`);
                     shs.push(stabi2);
                     shs.push('endStatus="$?";echo "* done with code [ $endStatus ]"');
                     shs.push('echo "exitCode: $endStatus" >> "./_Ready/0__status_07_STABpass2_END"');
                 }
 
                 shs.push(`# --- stabilize - test if it's ok  --- START
-if test -e './file${fNameLast}Stab${ext}';then 
+if test -e "$wDirProfFile"'/file${fNameLast}Stab${ext}';then 
     echo "-  ok file is at place"
-    if test \`du './file${fNameLast}Stab${ext}' | awk '{print $1}'\` -lt "100";then
+    if test \`du "$wDirProfFile"'/file${fNameLast}Stab${ext}' | awk '{print $1}'\` -lt "100";then
         echo "- file to small less then 100 kb ... swaping to org"
+        touch "$wDirProfFile"'/${f}__status_07_STABpass2_FILE_TO_SMALL'
         touch './_Ready/${f}__status_07_STABpass2_FILE_TO_SMALL'
         echo -e "\n\n EE file to small EE" && date >> "$tmpFFmpegLog"
-        mv './file${fNameLast}Stab${ext}' \`mktemp\`
-        cp './file${fNameLast}${ext}' './file${fNameLast}Stab${ext}'
+        mv "$wDirProfFile"'/file${fNameLast}Stab${ext}' \`mktemp\`
+        cp "$wDirProfFile"'/file${fNameLast}${ext}' "$wDirProfFile"'/file${fNameLast}Stab${ext}'
     fi
 else 
     echo "- file missing ... swap to org"
-    touch './_Ready/${f}__status_07_STABpass2_FILE_MISSING'
+    touch "$wDirProfFile"'/${f}__status_07_STABpass2_FILE_MISSING'
+    touch './_Ready/${f}__status_07_STABpass2_FILE_MISSINGL'
     echo -e "\n\n EE file missing EE" && date >> "$tmpFFmpegLog"
-    cp './file${fNameLast}${ext}' './file${fNameLast}Stab${ext}'
+    cp "$wDirProfFile"'/file${fNameLast}${ext}' "$wDirProfFile"'/file${fNameLast}Stab${ext}'
 fi                 
 # --- stabilize - test if it's ok --- END`);
                 
@@ -336,14 +341,14 @@ fi
             }
 
             if( opt.rotMin ){
-                let rotMinCmd = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf "transpose=2" './file${fNameLast}RotM${ext}' `;// >> "$tmpFFmpegLog"`;
+                let rotMinCmd = `ffmpeg ${ffmpegArgs} -i "$wDirProfFile"'/file${fNameLast}${ext}' -vf "transpose=2" "$wDirProfFile"'/file${fNameLast}RotM${ext}' `;// >> "$tmpFFmpegLog"`;
                 toCleanTmp.push(`./file${fNameLast}RotM${ext}`);
                 if(1){
                     shs.push( atomTask( f, 8, 'ROTATE_MIN', rotMinCmd) );
                 }else{
                     shs.push('echo -e "\n\n rotMin" && date >> "$tmpFFmpegLog"')
                     shs.push(`# --- rotMin ... log at [ $tmpFFmpegLog ]`);+
-                    shs.push(`touch './_Ready/${f}__status_08_rotMin'`);
+                    shs.push(`touch "$wDirProfFile"'/${f}__status_08_rotMin'`);
                     shs.push( rotMinCmd );
                     shs.push('endStatus="$?";echo "* done with code [ $endStatus ]"');
                     shs.push('echo "exitCode: $endStatus" >> "./_Ready/0__status_08_rotMin_END"');
@@ -355,14 +360,14 @@ fi
 
 
             if( opt.rotPlu ){
-                let rotPluCmd = `ffmpeg ${ffmpegArgs} -i './file${fNameLast}${ext}' -vf "transpose=1" './file${fNameLast}RotP${ext}'  `;// >> "$tmpFFmpegLog"`;
+                let rotPluCmd = `ffmpeg ${ffmpegArgs} -i "$wDirProfFile"'/file${fNameLast}${ext}' -vf "transpose=1" "$wDirProfFile"'/file${fNameLast}RotP${ext}'  `;// >> "$tmpFFmpegLog"`;
                 toCleanTmp.push(`./file${fNameLast}RotP${ext}`);
                 if(1){
                     shs.push( atomTask( f, 9, 'ROTATE_PLU', rotPluCmd) );
                 }else{
                     shs.push('echo -e "\n\n rotPlu" && date >> "$tmpFFmpegLog"')
                     shs.push(`# --- rotPlu ... log at [ $tmpFFmpegLog ]`);
-                    shs.push(`touch './_Ready/${f}__status_09_rotPlu'`);
+                    shs.push(`touch "$wDirProfFile"'/${f}__status_09_rotPlu'`);
                     shs.push( rotPluCmd );
                     shs.push('endStatus="$?";echo "* done with code [ $endStatus ]"');
                     shs.push('echo "exitCode: $endStatus" >> "./_Ready/0__status_09_rotPlu_END"');
@@ -371,34 +376,43 @@ fi
                 
             }
 
-            shs.push(`mv './file${fNameLast}${ext}' './file${f}_DONE${ext}'`);
+            shs.push(`mv "$wDirProfFile"'/file${fNameLast}${ext}' "$wDirProfFile"'/file${f}_DONE${ext}'`);
             
-            shs.push(`touch './_Ready/${f}__status_10_WORK_END'\n`);
+            shs.push(`touch "$wDirProfFile"'/${f}__status_10_WORK_END'\n`);
                 //'./${f}_${j.qest.name}_${fileNoExt}_${ext}'`);
 
 
-            shs.push(`touch './_Ready/${f}__status_11_UPLOAD_START'`);
+            shs.push(`touch "$wDirProfFile"'/${f}__status_11_UPLOAD_START'`);
             let targetFileName = `${j.qest.name}_${f}_${fileNoExt}_"$qAgent"_${fSufix}${ext}`;
             if( cliType == 'sh' ){
+
+                let timeCmd = `cp "$wDirProfFile""/file${f}_DONE${ext}" "./_Ready/${targetFileName}";`+
+                    'timeStampSrc=`date -R -r "$baseDirF""/'+filename+'"`;'+
+                    `touch -d "$timeStampSrc" "./_Ready/${targetFileName}";`+
+                    'echo "#   timestamp ... [ $timeStampSrc ]"';
+                shs.push( atomTask( f, 10, 'TIMESTAMPS_FROM_SRC', timeCmd) );
+                 /*   
                 shs.push(`cp "./file${f}_DONE${ext}" "./_Ready/${targetFileName}"`);
                 shs.push('timeStampSrc=`date -R -r "$baseDirF""/'+filename+'"`');
                 shs.push('echo "# * preserving timestamp of file [ $timeStampSrc ]"');
+                */
                 //shs.push('echo "# * to clean temporary files ... "; for toCleanTmp in `echo "'+toCleanTmp.join(" ")+'"`;do echo "   * rm: ... [ $toCleanTmp ]"; if test -e "$toCleanTmp";then rm "$toCleanTmp"; fi;done; echo "";');
-                shs.push(`touch -d "$timeStampSrc" "./_Ready/${targetFileName}"`);
+                //shs.push(`touch -d "$timeStampSrc" "$wDirProfFile""./_Ready/${targetFileName}"`);
+
                 
             } else if( cliType == 'shs' ){
-                shs.push(`scpIt.sh local "./file${f}_DONE${ext}" "$baseDirF""/${targetFileName}"`);
+                shs.push(`scpIt.sh local "$wDirProfFile""/file${f}_DONE${ext}" "$baseDirF""/${targetFileName}"`);
 
             }
-            shs.push(`touch './_Ready/${f}__status_14_UPLOAD_FINISH'`);
+            shs.push(`touch "$wDirProfFile"'/${f}__status_14_UPLOAD_FINISH'`);
 
 
             shs.push(`#\n# work ---------------------- END\n#`);
         }
         
         let rate = q.rates[ f ]?q.rates[ f ]:'NaN';
-        shs.push(`touch './_Ready/${f}_${fileNoExt}_2q${ext}_asRate_${rate}'`);
-        shs.push(`touch './_Ready/${f}__status_000${rate}'`);
+        shs.push(`touch "$wDirProfFile"'/${f}_${fileNoExt}_2q${ext}_asRate_${rate}'`);
+        shs.push(`touch "$wDirProfFile"'/${f}__status_000${rate}'`);
         
         shs.push(`#\n#\n# file no: ${f} ----------------  END\n\n`);
     }

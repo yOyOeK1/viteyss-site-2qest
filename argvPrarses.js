@@ -1,9 +1,47 @@
 import path from 'node:path';
 import fs from 'fs';
 import { jsonToObject, jsonToShs } from './libs/vyArgs.js';
+import readline from 'node:readline';
 
 let debug = 'viteyssDebug' in process.env ? (process.env.viteyssDebug=='true'?true:false) : false;
 //let debug = true;
+
+
+class conQery{
+
+    constructor(){
+        this.rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+        
+    }
+
+    getQ=( queryStr, onLine = undefined )=>{
+        this.rl.question( queryStr, line => {
+            console.log(`Hi ${line}!`);
+            
+            this.rl.close();
+            if( onLine != undefined ) onLine( line );
+
+        });
+    }
+    getQSync=( queryStr)=>{
+        let trl = this.rl;
+        return new Promise((ok,no)=>{
+            trl.question( queryStr, line => {
+                console.log(`Hi ${line}!`);
+                
+                trl.close();
+                ok( line );
+    
+            });
+
+        });
+    }
+        
+}
+
 
 class argvFor2qest{
     constructor(){
@@ -82,7 +120,15 @@ class argvFor2qest{
                     '\n* convert to sh mode ... exit 1 DONE'+
                     '\n* files result:\n\t'+filesRes.join('\n\t') 
                 );
-
+                /*
+                if( filesRes.length > 0 ){
+                    
+                    let qc = new conQery();
+                    let qres = qc.getQSync( "# [q] Do you want to run int ... inPlace [N/y]");
+                    console.log('A: ['+qres+']');
+                    
+                }
+                */
 
                 process.exit(11);
             }
