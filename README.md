@@ -81,9 +81,9 @@ This way **viteyss** is sawn up with arguments about additional files to host. I
 
 ### screenshot
 
-![](./examples/screen_2512290926.png)
+![](examples/keyMap_dvorak_v2_2026-01-17%2018-44-37.png)
 
-*Keyboard shortcuts cheat sheet.*
+*Keyboard shortcuts cheat sheet. v2 in progress using viteyss-site-keyMap as dependence this is for dvorak layout*
 
 ##### bugs
 

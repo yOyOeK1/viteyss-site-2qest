@@ -227,12 +227,39 @@ mounted(){
         f = 'nst/2Qest/251228tt093334.2qest';
         //this.test_loadFileOnStart( f );
 
-    },1000);
+
+        console.log('[focus at ] vyKeyBinder ... bind focus');
+        
+        setTimeout(()=>{
+
+            let myVidPla =  document.getElementById('myVidPla');
+
+            myVidPla.addEventListener('focusin',e=>{ 
+                this.kbFocusState = 'onIt';
+                this.kb.enable(); 
+            });
+            myVidPla.addEventListener('focusout',e=>{ 
+                this.kbFocusState = 'offIt';
+                this.kb.disable(); 
+            });
+
+            myVidPla.focus();
+
+        },100);
+
+        
+
+
+    },500);
 
     console.log('2Qest - vyKeyBinder kb .... on mount ready? [ '+(typeof this.kb)+' ]');
     if( typeof this.kb == 'object' ){
         this.kb.enable();
     }
+
+
+   
+
 
 
 },
@@ -270,13 +297,15 @@ data(){
     if( 'vyKeyBinder' in window ){
         console.log('2Qest - vyKeyBinder ... OK ');
 
+        
+
         console.log('2Qest - vyKeyBinder ... setting dvorak layout');
         vykb = new window.vyKeyBinder( keyBindDvorak, keyMap1Dvorak,
             (onKeyShort)=>{
                 //console.log(`vyKeyBinder\n`,onKeyShort, ' tfl type:',(typeof this.$refs.tfl),this.$refs.tfl);
                 if( typeof this.$refs.tfl == 'object' ){
                     let focusOn = document.activeElement;
-                    console.log('[i] kb focus ... '+focusOn.tagName);
+                    console.log('[i] kb focus ... '+focusOn.tagName+` [${onKeyShort}]`);
                     
                     if( onKeyShort == 'keyboard shortcuts map' ){
                         console.log(`vyKeyBinder local -> [${onKeyShort}]`); 
@@ -295,9 +324,10 @@ data(){
             false 
         );
         vykb.init();
-        vykb.disable();
+        //vykb.disable();
+        
 
-
+        
     }else{
         console.log('2Qest - vyKeyBinder ... NOT INSTALLED !!  ');
     }
@@ -307,6 +337,7 @@ data(){
         kb: vykb,
         kbCurrentMap: vykb.getKeyDivInfo(),
         kbState:'-',
+        kbFocusState: 'offIt',
 
 
         autoSaveEnabled: false,
@@ -389,7 +420,10 @@ computed:{
     },
     kbBackgroundTwoApp(){
         console.log('#kbBackgroundTwoApp');
-        return 'rgb(119, 83, 39)';
+        if( this.kbFocusState == 'onIt' )
+            return 'rgb(39, 83, 119)';
+        else
+            return 'rgb(119, 83, 39)';
     }
 },
 methods:{

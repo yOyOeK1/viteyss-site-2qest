@@ -4,6 +4,7 @@
         
         <div style="display: inline-block;">
             <input type="text" v-model="inTag" 
+                :id="'divTagInput'+idIdentName"
                 :placeholder="'add tag :'+getCountCharactersInTags()"
                 style="width:100px"
                 @keyup.enter="onAddNewTag(inTag)"
@@ -33,7 +34,7 @@
 export default{
 
 
-props:[ 'tags' ],
+props:[ 'tags', 'idIdentName' ],
 emits:[ 'tags-colector-add', 'tags-colector-remove-index' ],
 data(){
     return {

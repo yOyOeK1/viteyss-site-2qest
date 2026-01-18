@@ -59,26 +59,26 @@ let keyMap1 = [
 'e + ArrowDown', 'select video lower',
 
 
-// [ ]
+// [x]
 '1', 'stabiline toggle',
-// [ ]
+// [x]
 '2', 'rot -',
-// [ ]
+// [x]
 '3', 'rot +',
-// [ ]
+// [x]
 'Alt + 1', 'focus on comments',
-// [ ]
+// [x]
 'Alt + 2', 'focus on tags',
 // [ ]
 'Alt + 3', 'exit comments or tags focus',
 
-// [ ]
+// [x]
 'Shift + G', 'ok',
-// [ ]
-'Shift + M', 'maby',
-// [ ]
+// [x]
+'Shift + M', 'mayby',
+// [x]
 'Shift + D', 'delete',
-// [ ]
+// [x]
 'Shift + N', 'no'
 
 ];

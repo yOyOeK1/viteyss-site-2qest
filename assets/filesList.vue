@@ -212,12 +212,14 @@
                 ><i class="fa-regular fa-copy"></i></button>
                 
             <TagsColector
-                    :tags="qest.tags[ fNo ]"
-                    @tags-colector-add="onEmit_tagsAdd"
-                    @tags-colector-remove-index="onEmit_tagRemove"
-                    />
+                :idIdentName="fNo"
+                :tags="qest.tags[ fNo ]"
+                @tags-colector-add="onEmit_tagsAdd"
+                @tags-colector-remove-index="onEmit_tagRemove"
+                />
             <br></br>
             <textarea
+                :id="'divCommentInput'+fNo"
                 rows="1"
                 placeholder="Notes to it"
                 style="width:95%;"
@@ -577,6 +579,15 @@ methods:{
         } else if( eventWay == 'set clip END' ){ this.onStopForNotes( this.fSelect,'to' );
         } else if( eventWay == 'jump to clip START' ){ this.onSeekTo( this.fSelect, 'from' );
         } else if( eventWay == 'jump to clip END' ){ this.onSeekTo( this.fSelect, 'to' );
+        } else if( eventWay == 'stabiline toggle' ){ this.qest.opts[ this.fSelect ]['stabilize'] = ! this.qest.opts[ this.fSelect ]['stabilize'];
+        } else if( eventWay == 'rot -' ){ this.qest.opts[ this.fSelect ]['rotMin'] = !this.qest.opts[ this.fSelect ]['rotMin'];
+        } else if( eventWay == 'rot +' ){ this.qest.opts[ this.fSelect ]['rotPlu'] = !this.qest.opts[ this.fSelect ]['rotPlu'];
+        } else if( eventWay == 'focus on comments'){ setTimeout(()=>document.getElementById('divCommentInput'+this.fSelect).focus(),10);
+        } else if( eventWay == 'focus on tags'){ setTimeout(()=>document.getElementById('divTagInput'+this.fSelect).focus(),10);
+        } else if( eventWay == 'exit comments or tags focus'){ setTimeout(()=>document.getElementById('myVidPla').focus(),10);
+        } else if( [ 'ok', 'mayby', 'maby', 'no', 'delete' ].indexOf( eventWay ) != -1 ){ 
+            this.onIsRate( this.fSelect, `${eventWay}`);
+        
 
         }else if( ['DIV','VIDEO' ].indexOf( focusOn.tagName ) != -1 ){
             if( e.keyCode == 32){// space
