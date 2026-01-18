@@ -103,7 +103,15 @@
             -->
 
 
-            
+            <button 
+                :id="'btCurParkSpotAndShort'+fNo"
+                @focusin="console.log('key in');$emit( 'cursor-parking-update', {fSelect:fNo,direction:'onIt'});"
+                @focusout="console.log('key out');$emit( 'cursor-parking-update', {fSelect:fNo,direction:'offIt'});"
+                :style="'border-color:red;'"
+                title="Cursor parking spot and shortcuts reciver"
+                >
+                Key
+                </button>
             <button 
                 title="clip from current position as start" @click="onStopForNotes( fNo,'from' )"><img src="@viteyss-site-2qest/assets/ico_brackFromW_16_16.png"></img></button>
             <button @mousedown.prevent="onStopForNotes( fNo, '--d' )" @mouseup.prevent="onStopForNotes( fNo, '--u' )"
@@ -305,7 +313,7 @@ import { toRaw } from 'vue';
 
 
 export default{
-
+emits: [ 'cursor-parking-update' ],
 props: [ 'qestAs', 'viewMode', 'kbBackgroundFileList' ],
 
 components:{
@@ -353,7 +361,16 @@ data(){
 
 },
 watch:{
-   
+    fSelect(nv,ov){
+        let focusAt =document.activeElement;
+        console.log('[fSelect watch ]nv['+nv+'] focus is? ['+focusAt.innerHTML+']');
+        if( `${focusAt.innerHTML}` == ' Key ' ){
+            setTimeout(()=>{ 
+                console.log('[fSelect watch ] ... folow the Key ...');
+                document.getElementById('btCurParkSpotAndShort'+nv).focus();
+            },10);
+        }
+    },
     viewMode(nv, ov){
         console.log('filesList view mode switch ['+nv+']');
         if( nv == 'PiP' ){
@@ -553,6 +570,7 @@ methods:{
 
     },
 */
+
     manageKeyShortCuts_v2( eventWay, e='' ){
         let focusOn = document.activeElement;
         //console.log( 'got key ',e, ' keycode: ',e.keyCode,' alt:'+e.altKey+' ctr:'+e.ctrlKey+' focuse on ['+focusOn.tagName+']');
@@ -589,7 +607,7 @@ methods:{
             this.onIsRate( this.fSelect, `${eventWay}`);
         
 
-        }else if( ['DIV','VIDEO' ].indexOf( focusOn.tagName ) != -1 ){
+        }/*else if( ['DIV','VIDEO' ].indexOf( focusOn.tagName ) != -1 ){
             if( e.keyCode == 32){// space
                 if( eventWay == 'down' ){
                     //console.log('space ! down ');
@@ -665,7 +683,7 @@ methods:{
             e.preventDefault();
             e.stopPropagation();
         }
-
+        */
     },
 
 
@@ -925,7 +943,7 @@ methods:{
             this.qest.opts[ this.fSelect ]['clipTo'] = vp.currentTime;
             
 
-        }else if( action == 'play' ){
+        }else if( action == 'play'  ){
             vp.play();
 
         }else{

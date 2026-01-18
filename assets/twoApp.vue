@@ -152,6 +152,7 @@
         :kbBackgroundFileList="kbBackgroundTwoApp"
         :qestAs="file"
         :viewMode="appViewMode"
+        @cursor-parking-update="onEmit_cursorParkingUpdate"
     />
 
 
@@ -227,36 +228,10 @@ mounted(){
         f = 'nst/2Qest/251228tt093334.2qest';
         //this.test_loadFileOnStart( f );
 
-
-        console.log('[focus at ] vyKeyBinder ... bind focus');
-        
-        setTimeout(()=>{
-
-            let myVidPla =  document.getElementById('myVidPla');
-
-            myVidPla.addEventListener('focusin',e=>{ 
-                this.kbFocusState = 'onIt';
-                this.kb.enable(); 
-            });
-            myVidPla.addEventListener('focusout',e=>{ 
-                this.kbFocusState = 'offIt';
-                this.kb.disable(); 
-            });
-
-            myVidPla.focus();
-
-        },100);
-
-        
+ 
 
 
     },500);
-
-    console.log('2Qest - vyKeyBinder kb .... on mount ready? [ '+(typeof this.kb)+' ]');
-    if( typeof this.kb == 'object' ){
-        this.kb.enable();
-    }
-
 
    
 
@@ -324,9 +299,8 @@ data(){
             false 
         );
         vykb.init();
-        //vykb.disable();
-        
-
+        vykb.preventAllDefault( true );
+        vykb.disable();
         
     }else{
         console.log('2Qest - vyKeyBinder ... NOT INSTALLED !!  ');
@@ -447,6 +421,27 @@ methods:{
     onEmit_hideKeyMap(){ this.showKeymap = false; },
     onEmit_hideKeyMapv2(){ this.showKeymapv2 = false; },
 
+    onEmit_cursorParkingUpdate( data ){
+        this.kbFocusState = `${data.direction}`;
+        if( data.direction == 'onIt' ){
+            /*
+            ajsanimate('#twoAppAutoSaveIndi',{
+                opacity:[0.5,1,0.5,1],
+                rotate:[-45,+45,0],
+                alterate: true,
+                loop:2,
+                duration:500
+            });*/
+
+
+            this.kb.enable(); 
+        }else{
+
+            this.kb.disable(); 
+        }
+        
+    },
+
     onSave( cbOnSave = undefined ){
         let fileName = `${this.$refs.tfl.qest.name}`;
         let q = JSON.cloneRaw( this.$refs.tfl.onGetQest() );
@@ -469,6 +464,7 @@ methods:{
 
     onLoadFromJson( j ){
         this.$refs.tfl.onSetQest( j );
+
     },
 
     onLoad(){
