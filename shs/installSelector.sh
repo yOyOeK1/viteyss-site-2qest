@@ -19,10 +19,9 @@ sleep 1
 
 echo "* setting up selecterStep1 ...."
 sed 's:twoQestHOME="":twoQestHOME="'"$viteyssHOME"'":g' "./shs/selectorStep_org.sh" > "./shs/selectorStep1.sh"
-echo "  - chmod it "
+echo "  - chmod it in "`pwd`
 chmod +x "./shs/selectorStep1.sh"
-
-chmod +x "./shs/runItItPlace.sh"
+chmod +x "./shs/runItInPlace.sh"
 
 
 
@@ -48,8 +47,8 @@ fi
 
 fTarget="$HOME""/.local/share/applications/2qestInst_.desktop"
 fTargetCon="$HOME""/.local/share/applications/2qestInst_convertToSh.desktop"
-fTargetReady="$HOME""/.local/share/applications/2qestInst_ToReady.desktop"
-echo "* installing it as a app [ $fTarget ]"
+#fTargetReady="$HOME""/.local/share/applications/2qestInst_ToReady.desktop"
+echo "* installing it as a app [ .desktop ]"
 
 echo '[Desktop Entry]
 Name=2Qest - v'"$npm_package_version"'
@@ -64,7 +63,7 @@ Categories=Multimedia;Player;
 echo "  - making link for .desktop  [ $fTarget ]"
 
 echo '[Desktop Entry]
-Name=2Qest convert to sh - v'"$npm_package_version"'
+Name=2Qest to sh - v'"$npm_package_version"'
 Exec='"$twoQestHOME"'/shs/selectorStep1.sh 0 --site=2qest --convertToSh=1 --files=0 %F
 Comment=Two run 2qest file convert to sh at spot
 Terminal=true
@@ -76,17 +75,17 @@ Categories=Multimedia;Player;
 
 echo "  - making link for .desktop  [ $fTargetCon ]"
 
-echo '[Desktop Entry]
-Name=2Qest to Ready - v'"$npm_package_version"'
-Exec='"$twoQestHOME"'/shs/runItItPlace.sh %F
-Comment=Two run 2qest file to Ready state
-Terminal=true
-Icon='"$twoQestHOME"'/assets/ico_inConvert_64_64.png
-Type=Application
-MimeType=text/plain;video/mpeg;video/mp4;video/ogg;video/x-flv;video/x-ms-wmv;video/x-msvideo;
-Categories=Multimedia;Player;
-' > "$fTargetReady"
 
-echo "  - making link for .desktop  [ $fTargetReady ]"
+#echo '[Desktop Entry]
+#Name=2Qest to Ready - v'"$npm_package_version"'
+#Exec='"$twoQestHOME"'/shs/runItItPlace.sh %F
+#Comment=Two run 2qest file to Ready state
+#Terminal=true
+#Icon='"$twoQestHOME"'/assets/ico_inConvert_64_64.png
+#Type=Application
+#MimeType=text/plain;video/mpeg;video/mp4;video/ogg;video/x-flv;video/x-ms-wmv;video/x-msvideo;
+#Categories=Multimedia;Player;
+#' > "$fTargetReady"
+#echo "  - making link for .desktop  [ $fTargetReady ]"
 
     

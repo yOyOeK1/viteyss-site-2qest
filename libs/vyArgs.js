@@ -1,7 +1,6 @@
-import { exec, execSync } from 'child_process'
 
 function bakeItInPlaceConsole( shs ){
-    console.log('# [@@] bakeItInPlaceConsole ...');
+    console.log('# [@@] bakeItInPlaceConsole ...',shs);
 
 
 }

@@ -56,6 +56,37 @@
 
 </div>
 
+<!-- oven html start -->
+<div v-if="oven.working">
+    <a @click="onQeryTasksNow()">
+        Q - task list</a>
+    | 
+    <a @click="onDoFetch( '/apis/2qest/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0')">
+        start tast</a>
+    | 
+    <a @click="onStartTasksNow()">
+        st</a> 
+    <hr></hr>
+    
+    <div v-if="oven.tUpdate == undefined">* need to Qeory server</div>
+    <div v-if="oven.tUpdate != undefined">
+        <pre>{{ new Date(oven.tUpdate) }}
+tasks total:    [ {{ oven.data.length }} ] running ... [ {{ oven.data.filter( sp => sp.tEnd < 10).length }} ]
+errCode:        [ {{ oven.data.filter( sp => sp.exitCode != undefined ).length }} ]
+</pre>
+
+        cmd:
+        <input type="text" @change="onChangeInputCmd"></input>
+
+    </div>
+
+
+
+
+    <div>status ... over</div>
+    <div>---</div>
+</div>
+
 
 <!--
     <div style="display: inline-block;">
@@ -313,6 +344,12 @@ data(){
 
 
     return {
+        oven:{
+            working: true,
+            tUpdate: undefined,
+            data: undefined
+        },
+
         kb: vykb,
         kbCurrentMap: vykb.getKeyDivInfo(),
         kbState:'-',
@@ -407,6 +444,163 @@ computed:{
 },
 methods:{
 
+    // oven start
+
+    chunksToResult( lines ){
+        
+        let tr = {
+            runNo: -1,
+            lines: [],
+            linesC: -1,
+            res: [],
+            exitCode:undefined,
+
+        };
+        //debugger
+        if( lines.length > 1  ){
+            tr.runNo = lines[0].substring( 1 ).split(']')[0];
+        }
+
+
+        let lis = [];
+        let spDataStart = 0;
+        let lNo = 0;
+        let templateSpData = `[${tr.runNo}][sp][data] ... `;
+        for( let line of lines ){
+            line.split('\n').forEach(l => {
+
+                if( l != templateSpData && l != '' ){
+
+                    lis.push ( l );
+                    
+                    if( l.endsWith('# GOGO ... #') )
+                    spDataStart = lNo;
+                
+                    lNo++
+                }   
+            });            
+        }
+        tr.lines = lis;
+        let linesC = lis.length;
+        tr.linesC = linesC;
+
+        let templateP = `[${tr.runNo}]   `;
+        if( linesC > 5 && lis[ linesC - 1 ] == '# ----- DONE'){
+            tr.exitCode = lis[ linesC - 2 ].split(',')[1];
+
+            let spDataEnd = linesC - 2;
+            let prefLen = templateP.length;
+            for( let li=spDataStart+1; li<spDataEnd; li++ )
+                tr.res.push( lis[ li ].substring( prefLen ) );
+
+        }
+
+        return tr;
+    },
+
+
+    onChangeInputCmd( ev ){
+        let cmdStr = `${ev.target.value}`;
+        console.log('[oven] got cmd: ', cmdStr );
+        this.onOvenCmd( `${cmdStr}` );
+        ev.target.value = '';
+    },
+
+    onDoFetch( url, onCB = { onChunk: undefined, onReady: undefined } ){
+        async function readAllChunks(readableStream) {
+            const reader = readableStream.getReader();
+            const chunks = [];
+            
+            let done, value;
+            while (!done) {
+                ({ value, done } = await reader.read());
+                if (done) {
+                    //console.log('[oven] res final all ... ');
+                    return chunks;
+                }
+                let chunkStr = new TextDecoder().decode( value );
+                chunks.push( chunkStr );
+                //console.log('[oven] res 3 chunk,', chunkStr);
+
+                if( 'onChunk' in onCB && onCB.onChunk != undefined )
+                    onCB.onChunk( chunkStr );
+            }
+        };
+        let onCBt = onCB;
+        return fetch( url )
+            .then( res => {
+                let resStream = readAllChunks( res.body );
+                //console.log('[oven] res 20', resStream );
+                resStream.then( r => { 
+                     if( 'onReady' in onCBt && onCBt.onReady != undefined )
+                        onCBt.onReady( r ) 
+                } );                
+
+                //console.log('[oven] res 2',res);
+            })
+            .catch(e=>{
+                console.log('[oven] error 2',e);
+            });
+        
+    },
+
+    onQeryTasksNow(){
+
+        // this.onDoFetch( '/apis/2qest/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0' 
+        this.onDoFetch( '/apis/2qest/QTaskList',{
+            'onReady':(r)=>{
+                let j = JSON.parse( r );
+                console.log('[oven] qery tast now result .... ',
+                    JSON.stringify( j ,null,4)
+                );
+                this.oven.tUpdate = Date.now();
+                this.oven.data = j;
+
+                } 
+            });
+
+    },
+
+
+    onOvenCmd( cmd ){
+        this.onDoFetch( '/apis/2qest/cmd0/b64:'+btoa(cmd),{
+            'onReady':(r)=>{
+                console.log('[oven] cmd0 finally .... ',r );
+                let cmdRes = this.chunksToResult( r );
+                console.log('[oven] cmd0 res .... ',JSON.stringify(cmdRes,null,4) );
+                
+
+
+
+                },
+            'onChunk':(r)=>{
+                console.log('[oven] cmd0 chunk  .... ',r);
+                } 
+            });
+            
+    },
+
+    onStartTasksNow(){
+        this.onDoFetch( '/apis/2qest/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0',{
+            'onReady':(r)=>{
+                console.log('xxx[oven] qery tast now result .... ',
+                   r
+                );
+
+                },
+            'onChunk':(r)=>{
+                console.log('xxxx[oven]chunk qery tast now result .... ',
+                    r
+                );
+
+                } 
+            });
+            
+    },
+
+    // oven end 
+
+
 
     onCliToBakeIt(){
         if( this.$refs.tfl == undefined ) return 1;
@@ -415,7 +609,8 @@ methods:{
 
         let q = JSON.cloneRaw( this.$refs.tfl.onGetQest() );
         let shs = jsonToShs( q, toRaw( this.cliType )  );
-        setTimeout(()=>bakeItInPlaceConsole( shs ),10);
+        //setTimeout(()=>bakeItInPlaceConsole( shs ),10);
+
 
 
         console.log('[bakeIt] ... END');
