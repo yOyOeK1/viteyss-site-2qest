@@ -111,6 +111,11 @@
 
     |
 
+    
+    <button @click="onCliToBakeIt()">Bakeit</button>
+
+    |
+
     <input type="checkbox" v-model="debExec"
         title="debug stuff"></input>
 
@@ -201,7 +206,7 @@
 
 
 <script>
-import { jsonToShs, vyArgsChk } from '../libs/vyArgs';
+import { bakeItInPlaceConsole, jsonToShs, vyArgsChk } from '../libs/vyArgs';
 import {toRaw} from 'vue';
 import FilesList from './filesList.vue';
 import { animate as ajsanimate } from 'animejs';
@@ -401,6 +406,22 @@ computed:{
     }
 },
 methods:{
+
+
+    onCliToBakeIt(){
+        if( this.$refs.tfl == undefined ) return 1;
+
+        console.log('[bakeIt] ... START');
+
+        let q = JSON.cloneRaw( this.$refs.tfl.onGetQest() );
+        let shs = jsonToShs( q, toRaw( this.cliType )  );
+        setTimeout(()=>bakeItInPlaceConsole( shs ),10);
+
+
+        console.log('[bakeIt] ... END');
+    },
+
+
 
 
     async onEmit_makeAutoSave( fileName, data ){   

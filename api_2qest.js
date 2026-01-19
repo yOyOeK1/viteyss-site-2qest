@@ -1,0 +1,250 @@
+import { spawn } from 'node:child_process';
+
+import {dirname} from 'node:path'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url';  
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const __dirnameProcess = process.cwd();
+
+
+class server2qest{
+
+    constructor(){
+        
+        this.method = "GET";
+        this.url = "/apis/2qest";
+        this.ottO = undefined;
+        this.server = undefined;
+        this.casheFolder = '/tmp/2qest';
+        this.runNo = 0;
+        this.envMy = {'filename':__filename, 'dirname':__dirname, 'dirnameProcess':__dirnameProcess};
+        
+        //this.mapleafletPath = '/home/iloo/Projects/ilooViteYss/sharelibs/viteyss-site-mapleaflet';
+        //this.mapleafletPath = '/home/yoyo/Apps/viteyss-site-mapleaflet';
+        
+        
+    }
+    
+    cl( str ){
+        console.log(` api2Qest     ${this.method}  ${this.url}     `,str);
+    }
+
+    cl2( res, str ){
+        console.log( '['+res.runNo+']'+str );
+        res.write( '['+res.runNo+']'+str+"\n" );
+    }
+
+    chkCasheDir=( res, dirname )=>{
+        this.cl2(res, '[i] checking by temporary directory [ '+dirname+' ]');
+        let cFolder = undefined;
+        try{
+            cFolder = fs.readdirSync( dirname );
+        }catch(e){
+            this.cl2(res, ['[ee] fs return\n',e]);
+            fs.mkdirSync( dirname );
+            cFolder = fs.readdirSync( dirname );
+
+        }
+
+        return cFolder;
+    }
+
+
+    async doIt( req, res ){
+
+
+        let bUrl = String(req.originalUrl).substring( this.url.length+1 );
+        let sapi = bUrl.split("/");
+
+        // / key / x / y / z
+        if( sapi.length ==  4 ){
+            res.end('4');
+            
+        //  / bakeInPlace / base64PathToFile
+        }else if( sapi.length ==  2 && sapi[0] == 'bakeInPlace' ){
+            this.runNo++;
+            let runNo = `${this.runNo}`;
+            res['runNo'] = runNo;
+            let clientOnline = 1;   
+            
+
+            res.writeHead(200,{
+                'Content-Type': 'text/plain; charset=utf-8',
+                'Transfer-Encoding': 'chunked',
+                'Cache-Control': 'no-cache',
+                'Content-Length':'1042141',
+                'Connection': 'keep-alive',
+            });
+
+            let b64 = sapi[1];
+            let fPath = atob( b64 );
+
+            // echo -n '/home/yoyo/Apps/viteyss-site-2qest/oven/inPlace2_260117tt165934.2qest' | base64
+            // L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0
+            // http://localhost:8080/apis/2qest/bakeInPlace/L2hvbWUveW95by9BcHBzL3ZpdGV5c3Mtc2l0ZS0ycWVzdC9vdmVuL2luUGxhY2UyXzI2MDExN3R0MTY1OTM0LjJxZXN0
+
+            
+            
+            //debugger
+            let cmd = ['echo -n "# "`date`"\n";',
+                `echo "# [i] Hello from api_2qest terminal agent ..";`,
+                'echo "# pwd:   [`pwd`]";',
+                `echo "# Will performe automatic sequence to make from .2qest to  _Ready in place.";`,
+                `echo "# ... start in 5 sec";`,
+                `sleep .15;`,
+                `echo "GOGOGO from sh layer ....";pwd;`,
+                `echo "# * will convert .2qest to .sh ...";
+
+mkpLog=\`mktemp\`
+
+cd ${this.envMy.dirnameProcess}
+node ./runItSelector.js --site=2qest --convertToSh=1 --files="${fPath}" >> "$mkpLog"
+exitC="$?"
+echo "# [d] Exit convert with code: [ ""$exitC"" ]"                
+if test "$exitC" = "11";then
+    echo "# * echo convert OK in log file [ $mkpLog ]"
+    shFilePath=\`cat "$mkpLog" | grep "target sh file " | awk '{print $6}' \`
+    echo "# * sh file path  ...  [ $shFilePath ]"
+    if test -e "$shFilePath";then
+        echo "# * make it executable ..."
+        chmod +x "$shFilePath"
+        cd \`dirname "$shFilePath"\`
+        pwd
+        echo "run in ... 5""exec \`basename "$shFilePath"\`"
+        sleep 5
+        exec \`basename "$shFilePath"\`
+
+    else
+        echo "#EE * no sh file in target place "
+    fi
+
+else
+    echo "#EE * convert error exit 9"
+    
+fi                
+                `,
+                `echo "# Done _______________"\`date\`;exec bash`].join('\n');
+            
+                
+                //date;sleep 5;df -h;date;sleep 5;df -h;date;sleep 5;df -h;echo 'done';`;
+            //cmd = `gnome-terminal -- bash -c "${cmd}"`;
+            cmd = `gnome-terminal -- bash -c '${cmd}'`;
+            let waitForEndInter = -1;
+            let waitForEnd = true;
+            let basename = path.basename( fPath );
+            let dirname = path.dirname( fPath );
+            let fileNameNoExt = basename.substring(0, basename.lastIndexOf('.')-1 );
+            let extStr = basename.substring( basename.lastIndexOf('.') );
+            let cDir = this.chkCasheDir( res, this.casheFolder );
+            let inPDir = this.chkCasheDir( res, dirname+'/'+fileNameNoExt );
+            let extOk = extStr == '.2qest' ? true : false;
+            //let cDir = this.chkCasheDir( res, dirname );
+            
+            
+            this.cl2(res, 
+                '# '+[`viteyss-site-2qest / ${this.url} ... `,
+                '',
+                ' run in place: [ YES ]',
+                ' runNo:        [ '+runNo+' ]',
+                ' on file:      [ '+fPath+' ]',
+                ' basename:     [ '+basename+' ]',
+                ' noExt:        [ '+fileNameNoExt+' ] [ '+extStr+' ] [ '+extOk+' ]',
+                ' dirname:      [ '+dirname+' ]',
+                ' cDir items:   [ '+cDir.length+' ]',
+                ' inPDir items:   [ '+inPDir.length+' ]',
+                ' entry date:   [ '+Date.now()+' ]',
+                '',
+                '',
+                'Plan is to run it in place ... will start in 5 sec.'
+
+                ].join('\n# ')
+            );
+            
+            if( extOk == false ){
+                this.cl2(res,'No start extension not ok !! EXIT;');
+
+                return 0;
+
+            }
+
+            let sp = spawn( cmd, { shell: true } );
+
+            sp.stdout.on( 'data', d =>{
+                this.cl2(res, '[child][ok] --------------');
+                for( let line of `${d}`.split('\n') ){
+                    this.cl2(res, line );
+                }
+
+            });
+
+            sp.stderr.on( 'data', d =>{
+               this.cl2(res, '[child][err]d: '+d);
+            });
+
+            sp.on('close', exitCode => {
+                this.cl2(res, '[child][close] '+exitCode);
+                waitForEnd = false
+
+
+            });            
+            sp.stdin.end();
+            
+            waitForEndInter = setInterval(()=>{
+                if( waitForEnd == false ){
+                    this.cl2(res, '# [@@] BakeInPlace ... At WATCHDOG');
+                    clearInterval( waitForEndInter );
+                    res.end('# ----- ');
+                    waitForEndInter = -1;
+                }else{
+                    this.cl2(res, '# ping client[ '+clientOnline+' ]');
+                }
+
+            },1000);
+
+            
+            req.on('close',e=>{
+                this.cl('\n\n['+runNo+'][##] client left close');
+                clientOnline = 0;
+
+            });
+            req.on('error',e=>{
+                this.cl('\n\n['+runNo+'][##] client left error');
+            });
+
+
+        }else if( bUrl.endsWith('dbSoundings') ){
+            return 1;
+            
+            
+        }else if( bUrl.startsWith('mapio/getList') ){
+            // curl -k -x GET https://localhost:8080/apis/mapleaflet/mapio/getList | jq .
+           
+
+        }else{
+            res.end('404');
+
+        } 
+        
+        return 0;
+       
+    }
+
+   
+    handleRequest( args ){
+        let {req, res, server } = args;
+
+        if( String(req.url).startsWith(this.url) ){
+            this.server = server;
+            return this.doIt( req,res );
+
+        }
+
+
+
+    }
+}
+
+export { server2qest }

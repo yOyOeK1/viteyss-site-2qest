@@ -1,3 +1,11 @@
+import { exec, execSync } from 'child_process'
+
+function bakeItInPlaceConsole( shs ){
+    console.log('# [@@] bakeItInPlaceConsole ...');
+
+
+}
+
 function vyArgsChk ( qestName = 'NaNo.O' ){
 
     let files = [];
@@ -456,4 +464,4 @@ if( process && 'argv' in process && process.argv.length >= 3 ){
 }
 
 
-export{ vyArgsChk,jsonToShs, jsonToObject }
+export{ vyArgsChk,jsonToShs, jsonToObject, bakeItInPlaceConsole }
