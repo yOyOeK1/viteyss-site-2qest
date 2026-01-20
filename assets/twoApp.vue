@@ -71,11 +71,49 @@
     <div v-if="oven.tUpdate == undefined">* need to Qeory server</div>
     <div v-if="oven.tUpdate != undefined">
         <pre>{{ new Date(oven.tUpdate) }}
-tasks total:    [ {{ oven.data.length }} ] running ... [ {{ oven.data.filter( sp => sp.tEnd < 10).length }} ]
-errCode:        [ {{ oven.data.filter( sp => sp.exitCode != undefined ).length }} ]
-</pre>
+tasks total:    [ {{ oven.data.length }} ] running [ {{ oven.data.filter( sp => sp.tEnd == undefined ).length }} ]
+errCode:        [ {{ oven.data.filter( sp => sp.exitCode != 0 ).length }} ]
+pennding now:</pre>
+
+        <div v-for="spi,sNo in oven.data.filter( spi => spi.tEnd == undefined )">
+            [TODOisRunningNow] | 
+            [<a 
+                @click="oven_onSendKill( spi.sp.pid, 'KILL' )"
+                title="kill process"
+                >k</a>] 
+            [<a 
+                @click="oven_onSendKill( spi.sp.pid, 'STOP' )"
+                title="pause"
+                >p</a>]
+            [<a 
+                @click="oven_onSendKill( spi.sp.pid, 'CONT' )"
+                title="resume if pause"
+                >r</a>]
+            [<a 
+                title="set low nice"
+                >n-</a>] 
+            [<a 
+                title="set high nice"
+                >n+</a>]
+            |
+            [{{ spi.runNo }}] pid: [{{spi.sp.pid }}]
+            |
+
+            {{ parseInt(Date.now()- spi.tStart)/1000.00 }} sec.
+            |
+            {{ spi.ident }}
+            <small>{{spi.sp.spawnargs[2]}}</small>
+        </div>
+
+        results:
+        <div v-for="res,resNo in oven.results">[{{ res.id }}]
+            <pre><small>#   {{ res.data.res.join('\n#\t') }}</small></pre>
+        </div>
 
         cmd:
+        <a @click="onOvenCmd( `ps ${oven.data.flatMap( d => d.sp.pid ).join(' ')}` )">Qproces status</a> |
+        <a @click="onOvenCompact( 'disk space' )">disk Space</a> |
+        <br></br>
         <input type="text" @change="onChangeInputCmd"></input>
 
     </div>
@@ -347,7 +385,10 @@ data(){
         oven:{
             working: true,
             tUpdate: undefined,
-            data: undefined
+            data: undefined,
+            results:[],
+            isWatching: false,
+            watchingIter: -1
         },
 
         kb: vykb,
@@ -445,6 +486,42 @@ computed:{
 methods:{
 
     // oven start
+    chkWatcher(){
+        
+        if( this.oven.watchingIter == -1 ){
+            //isWatching: false,
+            //watchingIter: -1
+            this.oven.watchingIter = setInterval(()=>{
+                let killInter = false;
+                let pendinng = this.oven.data.filter( spi => spi.tEnd == undefined );
+                console.log('[over][watcher] .... ',pendinng.length);
+                if( this.oven.data == undefined ){
+                    killInter = true;
+                }else{
+                    
+                    if( pendinng.length == 0 ){
+                        killInter = true;
+                        console.log('[over][watcher] .... kill it it\' done');
+                    }else{
+                        console.log('[over][watcher] working ... ',pendinng);
+                    }
+                }
+                    
+                    
+                if( killInter ){
+                    clearInterval( this.oven.watchingIter );
+                    this.oven.watchingIter = -1;
+                }else{
+                    this.onQeryTasksNow();
+
+                }
+
+            },1000);
+
+        }else{
+
+        }
+    },
 
     chunksToResult( lines ){
         
@@ -456,8 +533,16 @@ methods:{
             exitCode:undefined,
 
         };
-        //debugger
-        if( lines.length > 1  ){
+        debugger
+        if( lines.length > 0  ){
+            lines.findIndex( l => {
+                if( l.indexOf('#  runNo:        [ ') != -1 ){
+                    let lTmp = l.split('#  runNo:        [ ')[1];
+                    tr.runNo = lTmp.split(' ]')[0];
+                    return true;
+
+                }
+            });
             tr.runNo = lines[0].substring( 1 ).split(']')[0];
         }
 
@@ -485,15 +570,22 @@ methods:{
         tr.linesC = linesC;
 
         let templateP = `[${tr.runNo}]   `;
+        let tepmlateS = `[${tr.runNo}][sp][data] ... `;
         if( linesC > 5 && lis[ linesC - 1 ] == '# ----- DONE'){
             tr.exitCode = lis[ linesC - 2 ].split(',')[1];
 
             let spDataEnd = linesC - 2;
             let prefLen = templateP.length;
             for( let li=spDataStart+1; li<spDataEnd; li++ )
-                tr.res.push( lis[ li ].substring( prefLen ) );
+                if( lis[ li ] != tepmlateS){
+                    console.log('insert - '+lis[ li ]);
+                    tr.res.push( lis[ li ].substring( prefLen ) );
+                }
 
         }
+
+
+        this.oven.results.push( {id:tr.runNo, data: tr} );
 
         return tr;
     },
@@ -507,6 +599,8 @@ methods:{
     },
 
     onDoFetch( url, onCB = { onChunk: undefined, onReady: undefined } ){
+        //setTimeout(()=>this.chkWatcher(),500);       
+       
         async function readAllChunks(readableStream) {
             const reader = readableStream.getReader();
             const chunks = [];
@@ -550,8 +644,8 @@ methods:{
         this.onDoFetch( '/apis/2qest/QTaskList',{
             'onReady':(r)=>{
                 let j = JSON.parse( r );
-                console.log('[oven] qery tast now result .... ',
-                    JSON.stringify( j ,null,4)
+                console.log('[oven] qery test now result .... ',
+                    //JSON.stringify( j ,null,4)
                 );
                 this.oven.tUpdate = Date.now();
                 this.oven.data = j;
@@ -561,6 +655,73 @@ methods:{
 
     },
 
+    oven_onSendKill( pid, sigNal ){
+        console.log('[oven] cmd0 sendKill to pid: [ '+pid+' ] [ '+sigNal+' ] ' );
+        this.onDoFetch( '/apis/2qest/cmd0/b64:'+btoa(`echo 'Will send kill signall ';/bin/kill -${sigNal} ${pid}`),{
+            'onReady':(r)=>{
+                let cmdRes = this.chunksToResult( r );
+                console.log('[oven] cmd0 sendKill DONE',cmdRes );
+                this.onQeryTasksNow();
+                }
+        });
+    },
+
+    onOvenCompact( compactName = 'disk space'){
+        let cmd = undefined;
+        let liveSes = undefined;
+        let postProcess = undefined;
+        let tStart = Date.now();
+        let tDelta = undefined;
+
+        if( compactName == 'disk space' ){
+            cmd = `df -h $HOME`;
+            liveSes = false;
+            let divName = 'abc'+Date.now();
+            postProcess = ( res ) => {
+                
+                $.toast({
+
+                    text:`Disk space at home: <br><br>${res[1]}<br><div id="${divName}"></div>`,
+                    afterShown: function () {
+                        let justGage2 = new JustGage({
+                            id: divName,
+                            value: 10,
+                            min: 0,
+                            max: 100,
+                            title: 'Disk space',
+                            donut: true
+                            });
+                    }
+                });
+                
+               
+            }
+        }
+
+
+
+        if( cmd != undefined && liveSes){
+            TODO
+        }else if( cmd != undefined && !liveSes){
+            this.onDoFetch( '/apis/2qest/cmd0/b64:'+btoa(`${cmd}`),{
+            'onReady':(r)=>{
+                let cmdRes = this.chunksToResult( r );
+                console.log('[oven] onOvenCompact DONE',cmdRes.res );
+                //this.onQeryTasksNow();
+                if( postProcess != undefined ){
+                    postProcess( cmdRes.res );
+                }
+                tDelta = ( (Date.now() - tStart) /1000 );
+                console.log('[oven] onOvenCompact ... loop in '+tDelta +' sec.');
+            }
+        });
+
+        }else {
+            TODO
+        }
+
+
+    },
 
     onOvenCmd( cmd ){
         this.onDoFetch( '/apis/2qest/cmd0/b64:'+btoa(cmd),{

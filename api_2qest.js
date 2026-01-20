@@ -138,6 +138,7 @@ fi
         let spObj = {
             ident: semaforPath,
             'sp': sp,
+            'runNo': runNo,
             'status' : 'running ...',
             'tEnd': undefined,
             'tStart': Date.now(),
@@ -407,7 +408,7 @@ fi
                 ident: semaforPath,
                 'sp': sp,
                 'status' : 'running ...',
-                'tEnd': -1,
+                'tEnd': undefined,
                 'tStart': Date.now()
             };
             this.spList.push( spObj );
