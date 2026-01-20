@@ -110,11 +110,22 @@ pennding now:</pre>
             <pre><small>#   {{ res.data.res.join('\n#\t') }}</small></pre>
         </div>
 
-        cmd:
-        <a @click="onOvenCmd( `ps ${oven.data.flatMap( d => d.sp.pid ).join(' ')}` )">Qproces status</a> |
-        <a @click="onOvenCompact( 'disk space' )">disk Space</a> |
-        <br></br>
-        <input type="text" @change="onChangeInputCmd"></input>
+        
+        <div class="smallBt">
+            cmd:
+            <a @click="onOvenCmd( `ps ${oven.data.flatMap( d => d.sp.pid ).join(' ')}` )">Qproces status</a> |
+            <button 
+                title="Home - Disk Space information"
+                @click="onOvenCompact( 'disk space' )"><i class="fa-regular fa-hard-drive"></i></button> |
+            <button 
+                title="e01Mux time left to switch ..."
+                @click="onOvenCompact( 'e01Mux_left' )">e01Mux left</button> |
+            <button 
+                title="Home percent battery status"
+                @click="onOvenCompact( 'home_perc' )">home battery</button> |
+            <br></br>
+            <input type="text" @change="onChangeInputCmd"></input>
+        </div>
 
     </div>
 
@@ -278,6 +289,7 @@ pennding now:</pre>
 import { bakeItInPlaceConsole, jsonToShs, vyArgsChk } from '../libs/vyArgs';
 import {toRaw} from 'vue';
 import FilesList from './filesList.vue';
+import { msToDurationString } from './libs';
 import { animate as ajsanimate } from 'animejs';
 import iFs from 'indexeddb-fs';
 import Splash from './splash.vue';
@@ -666,29 +678,96 @@ methods:{
         });
     },
 
+    makeMqttHook( topic, title, valType ){
+        let cmd = `mosquitto_sub -t '${topic}' -h 'hu' -p 10883 -V mqttv311`;
+        let postProcess = ( chunkNo, res ) => {
+            let mRes = parseInt(res.split(']')[1]);
+            if( valType == 'secLeft' ){
+                $.toast(`${title}: <br><br>${ msToDurationString( mRes ) } sec.<br>`);
+
+
+
+            }else if( valType == 'percent' ){
+                let divName = 'ooccPerc'+Date.now();
+                $.toast({
+                    text:`<div id="${divName}"></div>`,
+                    afterShown: function () {
+                        new JustGage({
+                            id: divName,
+                            value: mRes,
+                            min: 0,
+                            max: 100,
+                            title: title,
+                            donut: true
+                            });
+                    }
+                });
+
+
+
+
+            }else {
+                console.log('EE 5678987 valType not supported ',valType);
+
+            }
+        };
+
+        return {postProcess, cmd};
+    },
+
     onOvenCompact( compactName = 'disk space'){
         let cmd = undefined;
         let liveSes = undefined;
         let postProcess = undefined;
+        
         let tStart = Date.now();
         let tDelta = undefined;
 
-        if( compactName == 'disk space' ){
+
+        
+        if( compactName == 'e01Mux_left' ){
+            //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
+            liveSes = true;
+            let postProcessCmd = this.makeMqttHook( 'e01Mux/left', 'e01Mux - left', 'secLeft' );
+            cmd = postProcessCmd.cmd;
+            postProcess = postProcessCmd.postProcess;
+        
+        } else if( compactName == 'home_perc' ){
+            //cmd = `mosquitto_sub -t 'e01Mux/left' -h 'hu' -p 10883 -V mqttv311`;
+            liveSes = true;
+            let postProcessCmd = this.makeMqttHook( 'e01MuxFix/homeBatPerc', 'Home battery [ % ]', 'percent' );
+            cmd = postProcessCmd.cmd;
+            postProcess = postProcessCmd.postProcess;
+
+            
+            //let divName = 'abcLeft'+Date.now();
+            //postProcess = ( chunkNo, res ) => {
+            //    let mRes = parseInt(res.split(']')[1]);
+            //    $.toast({
+            //        text:`[${chunkNo}] e01Mux - left: <br><br>${ msToDurationString( mRes ) } sec.<br>`,
+            //    });
+            //}
+
+        }else if( compactName == 'disk space' ){
             cmd = `df -h $HOME`;
             liveSes = false;
             let divName = 'abc'+Date.now();
             postProcess = ( res ) => {
                 
+                let rWords = res[1].split(' ');
+                let percInd = rWords.findIndex(o => o.endsWith('%') );
+                let percIs = parseInt( rWords[ percInd ].replaceAll('%',''));
+                let gigW = rWords.filter( w => w.length > 2 );
+                let gigAvail =  gigW[ 3 ];
                 $.toast({
-
                     text:`Disk space at home: <br><br>${res[1]}<br><div id="${divName}"></div>`,
                     afterShown: function () {
                         let justGage2 = new JustGage({
                             id: divName,
-                            value: 10,
+                            value: percIs,
                             min: 0,
                             max: 100,
-                            title: 'Disk space',
+                            title: 'Home left: '+gigAvail,
                             donut: true
                             });
                     }
@@ -700,21 +779,46 @@ methods:{
 
 
 
-        if( cmd != undefined && liveSes){
-            TODO
-        }else if( cmd != undefined && !liveSes){
+        if( cmd != undefined && liveSes == false ){
             this.onDoFetch( '/apis/2qest/cmd0/b64:'+btoa(`${cmd}`),{
-            'onReady':(r)=>{
-                let cmdRes = this.chunksToResult( r );
-                console.log('[oven] onOvenCompact DONE',cmdRes.res );
-                //this.onQeryTasksNow();
-                if( postProcess != undefined ){
-                    postProcess( cmdRes.res );
+                'onReady':(r)=>{
+                    let cmdRes = this.chunksToResult( r );
+                    console.log('[oven] onOvenCompact DONE',cmdRes.res );
+                    //this.onQeryTasksNow();
+                    if( postProcess != undefined ){
+                        postProcess( cmdRes.res );
+                    }
+                    tDelta = ( (Date.now() - tStart) /1000 );
+                    console.log('[oven] onOvenCompact ... loop in '+tDelta +' sec.');
                 }
-                tDelta = ( (Date.now() - tStart) /1000 );
-                console.log('[oven] onOvenCompact ... loop in '+tDelta +' sec.');
-            }
-        });
+            });
+
+        }else if( cmd != undefined && liveSes == true ){
+            let chunkNo = 0
+            this.onDoFetch( '/apis/2qest/cmd0/b64:'+btoa(`${cmd}`),{
+                'onChunk':(r)=>{
+                    console.log('[oven] onOvenCompactChunk  ... ( '+chunkNo+' ) ['+r+']' );
+                    //this.onQeryTasksNow();
+                    
+
+                    if( postProcess != undefined && r.lastIndexOf('][sp][data] ...') != -1 ){
+                        let tLinst = r.split('\n');
+                        let resOk = [];
+                        tLinst.filter( l => {
+                            if( l.lastIndexOf('][sp][data] ...') == -1 &&
+                                l.lastIndexOf(']# [@@] ping client[ ') == -1 &&
+                                l.lastIndexOf('   # GOGO ... #') == -1
+                            )
+                                resOk.push( l );
+                        } );
+                        postProcess( chunkNo, resOk.join('\n') );
+                    }else if( postProcess != undefined && r.lastIndexOf(']# [@@] ping client[ ') == -1 ){
+                        postProcess( chunkNo, r );
+                        }
+                    chunkNo++;
+                    
+                }
+            });
 
         }else {
             TODO
