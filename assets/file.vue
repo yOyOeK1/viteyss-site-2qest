@@ -67,7 +67,7 @@
 
 
 import VyButtonContext from '@viteyss-site-settings1/UiAssets/vyButtonContext.vue';
-import { msToDurationString } from './libs';
+import { msToDurationString } from '/libs/libsForTime.js';
 
 
 export default{

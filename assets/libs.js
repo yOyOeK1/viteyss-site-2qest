@@ -1,4 +1,5 @@
- function msToDurationString(sec) {
+ function msToDurationString_no(sec) { 
+    // use @/libs/libsForTime.js msToDurationString
         let ms = parseInt(parseFloat(sec) * 1000.00);
         const seconds = Math.floor(ms / 1000);
         const minutes = Math.floor(seconds / 60);
@@ -24,4 +25,4 @@
 }
 
 
-export { msToDurationString }
+export { msToDurationString_no }

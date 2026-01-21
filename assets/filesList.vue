@@ -304,7 +304,7 @@
 
 import { vyArgsChk } from '../libs/vyArgs';
 import File from './file.vue';
-import { msToDurationString } from './libs';
+import { msToDurationString } from '/libs/libsForTime.js';
 import TagsColector from './tagsColector.vue';
 
 import VideoPlayer from './videoPlayer.vue';

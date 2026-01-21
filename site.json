@@ -7,7 +7,6 @@
     "asPlugin": true,
     "jssrc":["c_vys_2qest_Page.js"],
     "argvParser":"argvPrarses.js",
-    "apisrc":["api_2qest.js"],
     "enable": true,
     "author": "Bartłomiej Ceglik <yoyoek@wp.pl>",
     "icon": "assets/ico_in64_64.png",
